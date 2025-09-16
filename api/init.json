@@ -89,7 +89,6 @@
               "icon": "fa fa-snowflake-o",
               "target": "_self"
             }
-            
           ]
         }
       ]
@@ -105,43 +104,8 @@
           "href": "page/icon.html",
           "icon": "fa fa-dot-circle-o",
           "target": "_self"
-        },
-        {
-          "title": "图标选择",
-          "href": "page/icon-picker.html",
-          "icon": "fa fa-adn",
-          "target": "_self"
-        },
-        {
-          "title": "颜色选择",
-          "href": "page/color-select.html",
-          "icon": "fa fa-dashboard",
-          "target": "_self"
-        },
-        {
-          "title": "下拉选择",
-          "href": "page/table-select.html",
-          "icon": "fa fa-angle-double-down",
-          "target": "_self"
-        },
-        {
-          "title": "文件上传",
-          "href": "page/upload.html",
-          "icon": "fa fa-arrow-up",
-          "target": "_self"
-        },
-        {
-          "title": "富文本编辑器",
-          "href": "page/editor.html",
-          "icon": "fa fa-edit",
-          "target": "_self"
-        },
-        {
-          "title": "省市县区选择器",
-          "href": "page/area.html",
-          "icon": "fa fa-rocket",
-          "target": "_self"
         }
+        
       ]
     },
     {
@@ -173,25 +137,13 @@
                       "href": "page/button.html?v=3",
                       "icon": "fa fa-snowflake-o",
                       "target": "_self"
-                    },
-                    {
-                      "title": "表单4",
-                      "href": "page/form.html?v=1",
-                      "icon": "fa fa-calendar",
-                      "target": "_self"
                     }
                   ]
                 }
               ]
             }
           ]
-        },
-        {
-          "title": "失效菜单",
-          "href": "page/error.html",
-          "icon": "fa fa-superpowers",
-          "target": "_self"
-        }
+        }  
       ]
     }
   ]
