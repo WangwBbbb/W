@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系统设置 - 企业管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#FF4D4F',
+                        info: '#1890FF',
+                        light: '#F5F5F5',
+                        dark: '#141414'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            }
+            .transition-all-300 {
+                transition: all 300ms ease-in-out;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800 min-h-screen">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm fixed top-0 left-0 right-0 z-10">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <button id="sidebar-toggle" class="lg:hidden text-gray-600 hover:text-primary transition-all-300">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fa fa-cogs text-primary text-2xl"></i>
+                    <h1 class="text-xl font-semibold text-gray-800">企业管理系统</h1>
+                </div>
+            </div>
+            <div class="flex items-center space-x-6">
+                <div class="relative">
+                    <button class="text-gray-600 hover:text-primary transition-all-300">
+                        <i class="fa fa-bell text-xl"></i>
+                        <span class="absolute -top-1 -right-1 bg-danger text-white text-xs rounded-full h-4 w-4 flex items-center justify-center">3</span>
+                    </button>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <img src="https://picsum.photos/id/1005/40/40" alt="管理员头像" class="h-8 w-8 rounded-full object-cover">
+                    <span class="hidden md:inline font-medium">超级管理员</span>
+                    <i class="fa fa-angle-down text-gray-500"></i>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex pt-16 min-h-screen">
+        <!-- 侧边栏 -->
+        <aside id="sidebar" class="fixed top-16 left-0 bottom-0 w-64 bg-white shadow-sm transform -translate-x-full lg:translate-x-0 transition-all duration-300 z-10 overflow-y-auto">
+            <nav class="py-4">
+                <div class="px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">主菜单</div>
+                <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-tachometer w-5 text-center mr-3"></i>
+                    <span>仪表盘</span>
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-users w-5 text-center mr-3"></i>
+                    <span>员工管理</span>
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-calendar w-5 text-center mr-3"></i>
+                    <span>考勤管理</span>
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-money w-5 text-center mr-3"></i>
+                    <span>薪资管理</span>
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 bg-primary/10 text-primary border-l-4 border-primary transition-all-300">
+                    <i class="fa fa-cog w-5 text-center mr-3"></i>
+                    <span>系统设置</span>
+                </a>
+                
+                <div class="px-4 py-2 mt-6 text-xs font-semibold text-gray-500 uppercase tracking-wider">系统设置</div>
+                <a href="#system-params" class="setting-link flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-sliders w-5 text-center mr-3"></i>
+                    <span>系统参数配置</span>
+                </a>
+                <a href="#operation-logs" class="setting-link flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-list-alt w-5 text-center mr-3"></i>
+                    <span>操作日志查询</span>
+                </a>
+                <a href="#error-logs" class="setting-link flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-exclamation-triangle w-5 text-center mr-3"></i>
+                    <span>错误日志记录</span>
+                </a>
+                <a href="#data-backup" class="setting-link flex items-center px-4 py-3 text-gray-600 hover:bg-primary/5 hover:text-primary transition-all-300">
+                    <i class="fa fa-database w-5 text-center mr-3"></i>
+                    <span>数据备份与恢复</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- 主内容区 -->
+        <main class="flex-1 lg:ml-64 p-6">
+            <div class="mb-6">
+                <h2 class="text-[clamp(1.5rem,3vw,2rem)] font-bold text-gray-800">系统设置</h2>
+                <p class="text-gray-500 mt-1">配置系统规则与排查问题，管理系统参数与日志</p>
+            </div>
+
+            <!-- 系统参数配置 -->
+            <section id="system-params" class="setting-section bg-white rounded-lg shadow-sm p-6 mb-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">系统参数配置</h3>
+                    <span class="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">仅超级管理员</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">打卡有效时段</label>
+                            <div class="flex space-x-3">
+                                <input type="time" value="08:00" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                                <span class="flex items-center text-gray-500">至</span>
+                                <input type="time" value="18:00" class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">月度考勤统计日期</label>
+                            <input type="number" min="1" max="31" value="5" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <p class="text-xs text-gray-500 mt-1">每月该日期进行上月考勤统计</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">薪资计算日期</label>
+                            <input type="number" min="1" max="31" value="10" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <p class="text-xs text-gray-500 mt-1">每月该日期进行薪资计算</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">密码有效期（天）</label>
+                            <input type="number" min="7" max="365" value="90" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <p class="text-xs text-gray-500 mt-1">密码过期前7天提醒用户修改</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">系统通知方式</label>
+                            <div class="space-y-2">
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify-popup" checked class="rounded text-primary focus:ring-primary h-4 w-4">
+                                    <label for="notify-popup" class="ml-2 text-sm text-gray-700">弹窗通知</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify-sms" class="rounded text-primary focus:ring-primary h-4 w-4">
+                                    <label for="notify-sms" class="ml-2 text-sm text-gray-700">短信通知</label>
+                                </div>
+                                <div class="flex items-center">
+                                    <input type="checkbox" id="notify-email" checked class="rounded text-primary focus:ring-primary h-4 w-4">
+                                    <label for="notify-email" class="ml-2 text-sm text-gray-700">邮件通知</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">登录尝试次数限制</label>
+                            <input type="number" min="3" max="10" value="5" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <p class="text-xs text-gray-500 mt-1">超过次数将临时锁定账号</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">数据自动备份频率</label>
+                            <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                                <option value="daily">每天</option>
+                                <option value="weekly" selected>每周</option>
+                                <option value="monthly">每月</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">系统语言</label>
+                            <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                                <option value="zh-CN" selected>简体中文</option>
+                                <option value="en-US">English</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end">
+                    <button class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-all-300 flex items-center">
+                        <i class="fa fa-save mr-2"></i>保存设置
+                    </button>
+                </div>
+            </section>
+
+            <!-- 操作日志查询 -->
+            <section id="operation-logs" class="setting-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">操作日志查询</h3>
+                    <button class="text-primary hover:text-primary/80 transition-all-300 flex items-center text-sm">
+                        <i class="fa fa-download mr-1"></i>导出Excel
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">操作用户</label>
+                        <input type="text" placeholder="输入用户名" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">操作时间</label>
+                        <input type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">至</label>
+                        <input type="date" class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">操作类型</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <option value="">全部类型</option>
+                            <option value="add">新增</option>
+                            <option value="edit">修改</option>
+                            <option value="delete">删除</option>
+                            <option value="login">登录</option>
+                            <option value="export">导出</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mb-4">
+                    <button class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-all-300 text-sm">查询</button>
+                    <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-all-300 text-sm">重置</button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作用户</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作时间</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作模块</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作类型</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">IP地址</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">1001</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">张三 (ID:1001)</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-20 09:30</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">员工信息模块</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">新增</span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">192.168.1.100</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    <button class="text-primary hover:text-primary/80 transition-all-300 view-log-details">查看详情</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">1002</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">李四 (ID:1002)</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-20 10:15</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">考勤管理模块</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning">修改</span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">192.168.1.101</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    <button class="text-primary hover:text-primary/80 transition-all-300 view-log-details">查看详情</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">1003</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">王五 (ID:1003)</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-20 14:20</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">薪资管理模块</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-info/10 text-info">导出</span>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">192.168.1.102</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    <button class="text-primary hover:text-primary/80 transition-all-300 view-log-details">查看详情</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex items-center justify-between mt-6">
+                    <div class="text-sm text-gray-500">显示 1 至 3 条，共 124 条</div>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>上一页</button>
+                        <button class="px-3 py-1 border border-primary bg-primary text-white rounded-md">1</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">2</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">3</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">...</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">42</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">下一页</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 错误日志记录 -->
+            <section id="error-logs" class="setting-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">错误日志记录</h3>
+                    <div>
+                        <button class="text-danger hover:text-danger/80 transition-all-300 flex items-center text-sm mr-4 inline-block">
+                            <i class="fa fa-trash mr-1"></i>清空日志
+                        </button>
+                        <button class="text-primary hover:text-primary/80 transition-all-300 flex items-center text-sm inline-block">
+                            <i class="fa fa-download mr-1"></i>导出Excel
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-4 mb-6">
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">错误级别</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <option value="">全部级别</option>
+                            <option value="info">信息 (info)</option>
+                            <option value="warn">警告 (warn)</option>
+                            <option value="error" selected>错误 (error)</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">错误模块</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <option value="">全部模块</option>
+                            <option value="attendance">考勤模块</option>
+                            <option value="salary">薪资模块</option>
+                            <option value="user">用户模块</option>
+                            <option value="system">系统模块</option>
+                        </select>
+                    </div>
+                    <div class="flex-1 min-w-[200px]">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">时间范围</label>
+                        <select class="w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring focus:ring-primary/20 transition-all-300">
+                            <option value="today">今天</option>
+                            <option value="yesterday">昨天</option>
+                            <option value="7days" selected>近7天</option>
+                            <option value="30days">近30天</option>
+                            <option value="custom">自定义</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-between mb-4">
+                    <button class="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90 transition-all-300 text-sm">查询</button>
+                    <button class="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-all-300 text-sm">重置</button>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">错误时间</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">错误模块</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">错误级别</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">错误信息</th>
+                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">5001</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-20 10:15</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">薪资模块</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-danger/10 text-danger">error</span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">数据库连接超时</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    <button class="text-primary hover:text-primary/80 transition-all-300 view-error-details">查看详情</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">5002</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-20 11:30</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">考勤模块</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-warning/10 text-warning">warn</span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">打卡记录异常，时间格式不正确</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    <button class="text-primary hover:text-primary/80 transition-all-300 view-error-details">查看详情</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">5003</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-20 15:45</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">用户模块</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 py-1 text-xs rounded-full bg-info/10 text-info">info</span>
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-500 max-w-xs truncate">用户登录验证成功，但权限不足</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                    <button class="text-primary hover:text-primary/80 transition-all-300 view-error-details">查看详情</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="flex items-center justify-between mt-6">
+                    <div class="text-sm text-gray-500">显示 1 至 3 条，共 42 条</div>
+                    <div class="flex space-x-1">
+                        <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>上一页</button>
+                        <button class="px-3 py-1 border border-primary bg-primary text-white rounded-md">1</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">2</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">3</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">...</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md hover:bg-gray-50">14</button>
+                        <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">下一页</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 数据备份与恢复 -->
+            <section id="data-backup" class="setting-section bg-white rounded-lg shadow-sm p-6 mb-6 hidden">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800">数据备份与恢复</h3>
+                    <p class="text-sm text-gray-500 mt-1">管理系统数据备份，防止数据丢失</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-primary/5 rounded-lg p-5 border border-primary/20">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-medium text-gray-800">自动备份</h4>
+                            <i class="fa fa-refresh text-primary text-xl"></i>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">系统将按照设定的频率自动备份数据</p>
+                        <div class="text-sm text-gray-500">
+                            <p><span class="font-medium text-gray-700">备份频率：</span>每周</p>
+                            <p><span class="font-medium text-gray-700">下次备份：</span>2024-05-26 02:00</p>
+                            <p><span class="font-medium text-gray-700">存储位置：</span>本地服务器</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-success/5 rounded-lg p-5 border border-success/20">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-medium text-gray-800">最后备份</h4>
+                            <i class="fa fa-check-circle text-success text-xl"></i>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">最近一次成功备份的信息</p>
+                        <div class="text-sm text-gray-500">
+                            <p><span class="font-medium text-gray-700">备份时间：</span>2024-05-19 02:00</p>
+                            <p><span class="font-medium text-gray-700">文件大小：</span>128 MB</p>
+                            <p><span class="font-medium text-gray-700">备份状态：</span>成功</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-warning/5 rounded-lg p-5 border border-warning/20">
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="font-medium text-gray-800">备份状态</h4>
+                            <i class="fa fa-database text-warning text-xl"></i>
+                        </div>
+                        <p class="text-sm text-gray-600 mb-4">系统数据备份的整体状态</p>
+                        <div class="text-sm text-gray-500">
+                            <p><span class="font-medium text-gray-700">备份总数：</span>12 个</p>
+                            <p><span class="font-medium text-gray-700">占用空间：</span>1.5 GB</p>
+                            <p><span class="font-medium text-gray-700">数据完整性：</span>正常</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <h4 class="font-medium text-gray-800 mb-4">备份操作</h4>
+                    <div class="flex flex-wrap gap-4">
+                        <button id="manual-backup" class="bg-primary text-white px-6 py-2 rounded-md hover:bg-primary/90 transition-all-300 flex items-center">
+                            <i class="fa fa-hdd-o mr-2"></i>手动备份
+                        </button>
+                        <label for="restore-file" class="border-2 border-dashed border-gray-300 text-gray-600 px-6 py-2 rounded-md hover:bg-gray-50 transition-all-300 flex items-center cursor-pointer">
+                            <i class="fa fa-upload mr-2"></i>上传备份文件恢复
+                            <input id="restore-file" type="file" accept=".sql,.bak" class="hidden">
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <h4 class="font-medium text-gray-800 mb-4">备份历史</h4>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">备份时间</th>
+                                    <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文件名称</th>
+                                    <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">文件大小</th>
+                                    <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">备份类型</th>
+                                    <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                                    <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-19 02:00</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">backup_202405190200.sql</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">128 MB</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">自动备份</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">成功</span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                        <button class="text-primary hover:text-primary/80 transition-all-300 mr-3">
+                                            <i class="fa fa-download"></i>
+                                        </button>
+                                        <button class="text-warning hover:text-warning/80 transition-all-300 restore-backup">
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-12 02:00</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">backup_202405120200.sql</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">125 MB</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">自动备份</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">成功</span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                        <button class="text-primary hover:text-primary/80 transition-all-300 mr-3">
+                                            <i class="fa fa-download"></i>
+                                        </button>
+                                        <button class="text-warning hover:text-warning/80 transition-all-300 restore-backup">
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">2024-05-10 15:30</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">backup_202405101530.sql</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">124 MB</td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">手动备份</td>
+                                    <td class="px-4 py-3 whitespace-nowrap">
+                                        <span class="px-2 py-1 text-xs rounded-full bg-success/10 text-success">成功</span>
+                                    </td>
+                                    <td class="px-4 py-3 whitespace-nowrap text-sm">
+                                        <button class="text-primary hover:text-primary/80 transition-all-300 mr-3">
+                                            <i class="fa fa-download"></i>
+                                        </button>
+                                        <button class="text-warning hover:text-warning/80 transition-all-300 restore-backup">
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 日志详情模态框 -->
+    <div id="log-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">操作日志详情</h3>
+                <button id="close-log-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4 flex-1 overflow-y-auto">
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500">操作信息</h4>
+                        <p class="mt-1 text-gray-800">2024-05-20 09:30，用户张三（ID:1001），在员工信息模块，新增员工李四（工号：HR2024002）</p>
+                    </div>
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-sm font-medium text-gray-500">详细信息</h4>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <p class="text-xs text-gray-500">操作用户ID</p>
+                                <p class="text-sm text-gray-800">1001</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">操作用户名</p>
+                                <p class="text-sm text-gray-800">张三</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">操作时间</p>
+                                <p class="text-sm text-gray-800">2024-05-20 09:30:45</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">操作IP</p>
+                                <p class="text-sm text-gray-800">192.168.1.100</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">操作模块</p>
+                                <p class="text-sm text-gray-800">员工信息模块</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">操作类型</p>
+                                <p class="text-sm text-gray-800">新增</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-sm font-medium text-gray-500">操作内容</h4>
+                        <pre class="mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-800 overflow-x-auto">
+{
+  "action": "create",
+  "module": "employee",
+  "data": {
+    "id": "HR2024002",
+    "name": "李四",
+    "department": "人力资源部",
+    "position": "招聘专员",
+    "hire_date": "2024-05-20",
+    "status": "active"
+  },
+  "timestamp": "2024-05-20T09:30:45+08:00"
+}
+                        </pre>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+                <button id="close-log-modal-btn" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-all-300">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 错误日志详情模态框 -->
+    <div id="error-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-3xl max-h-[80vh] flex flex-col">
+            <div class="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+                <h3 class="text-lg font-semibold text-gray-800">错误日志详情</h3>
+                <button id="close-error-modal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4 flex-1 overflow-y-auto">
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-sm font-medium text-gray-500">错误信息</h4>
+                        <p class="mt-1 text-danger font-medium">数据库连接超时</p>
+                    </div>
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-sm font-medium text-gray-500">错误详情</h4>
+                        <div class="grid grid-cols-2 gap-4 mt-2">
+                            <div>
+                                <p class="text-xs text-gray-500">错误时间</p>
+                                <p class="text-sm text-gray-800">2024-05-20 10:15:30</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">错误模块</p>
+                                <p class="text-sm text-gray-800">薪资模块</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">错误级别</p>
+                                <p class="text-sm text-danger">error</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">请求ID</p>
+                                <p class="text-sm text-gray-800">req-123456789</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-sm font-medium text-gray-500">错误描述</h4>
+                        <p class="mt-2 text-sm text-gray-800">
+                            在进行月度薪资计算时，系统尝试连接数据库超时，导致计算任务失败。
+                            可能的原因包括数据库服务暂时不可用、网络连接问题或数据库连接池耗尽。
+                        </p>
+                    </div>
+                    <div class="border-t border-gray-100 pt-4">
+                        <h4 class="text-sm font-medium text-gray-500">堆栈信息</h4>
+                        <pre class="mt-2 p-3 bg-gray-50 rounded-md text-sm text-gray-800 overflow-x-auto max-h-60">
+java.sql.SQLTimeoutException: Timeout after 30000ms of waiting for a connection.
+    at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:208)
+    at com.zaxxer.hikari.pool.HikariPool.getConnection(HikariPool.java:163)
+    at com.zaxxer.hikari.HikariDataSource.getConnection(HikariDataSource.java:108)
+    at com.company.salary.service.SalaryCalculationService.calculateMonthlySalary(SalaryCalculationService.java:45)
+    at com.company.salary.controller.SalaryController.calculateMonthly(SalaryController.java:32)
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+    at java.lang.reflect.Method.invoke(Method.java:498)
+    at org.springframework.web.method.support.InvocableHandlerMethod.doInvoke(InvocableHandlerMethod.java:197)
+    at org.springframework.web.method.support.InvocableHandlerMethod.invokeForRequest(InvocableHandlerMethod.java:141)
+    at org.springframework.web.servlet.mvc.method.annotation.ServletInvocableHandlerMethod.invokeAndHandle(ServletInvocableHandlerMethod.java:106)
+    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.invokeHandlerMethod(RequestMappingHandlerAdapter.java:895)
+    at org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter.handleInternal(RequestMappingHandlerAdapter.java:808)
+    at org.springframework.web.servlet.mvc.method.AbstractHandlerMethodAdapter.handle(AbstractHandlerMethodAdapter.java:87)
+    at org.springframework.web.servlet.DispatcherServlet.doDispatch(DispatcherServlet.java:1064)
+                        </pre>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
+                <button id="close-error-modal-btn" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200 transition-all-300">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 备份确认模态框 -->
+    <div id="backup-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">确认恢复数据</h3>
+            </div>
+            <div class="px-6 py-6">
+                <div class="flex items-start mb-4">
+                    <i class="fa fa-exclamation-triangle text-warning text-xl mt-1 mr-3"></i>
+                    <p class="text-gray-700">
+                        恢复操作将覆盖当前系统所有数据，且此操作不可撤销。
+                        建议在恢复前先进行一次手动备份，以防止数据丢失。
+                    </p>
+                </div>
+                <div class="mt-4">
+                    <p class="text-sm text-gray-500 mb-2">备份文件：</p>
+                    <p class="text-sm font-medium text-gray-800" id="backup-filename">backup_202405190200.sql</p>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
+                <button id="cancel-restore" class="border border-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-50 transition-all-300">取消</button>
+                <button id="confirm-restore" class="bg-danger text-white px-4 py-2 rounded-md hover:bg-danger/90 transition-all-300">确认恢复</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 备份成功提示 -->
+    <div id="backup-success-toast" class="fixed top-4 right-4 bg-success text-white px-4 py-3 rounded-md shadow-lg transform translate-x-full transition-all duration-300 flex items-center z-50">
+        <i class="fa fa-check-circle mr-2"></i>
+        <span>数据备份成功！</span>
+    </div>
+
+    <script>
+        // 侧边栏切换
+        document.getElementById('sidebar-toggle').addEventListener('click', function() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('-translate-x-full');
+        });
+
+        // 切换设置页面
+        document.querySelectorAll('.setting-link').forEach(link => {
+            link.addEventListener('click', function(e) {
+                e.preventDefault();
+                const targetId = this.getAttribute('href').substring(1);
+                
+                // 隐藏所有设置部分
+                document.querySelectorAll('.setting-section').forEach(section => {
+                    section.classList.add('hidden');
+                });
+                
+                // 显示目标部分
+                document.getElementById(targetId).classList.remove('hidden');
+                
+                // 在移动设备上点击后收起侧边栏
+                if (window.innerWidth < 1024) {
+                    document.getElementById('sidebar').classList.add('-translate-x-full');
+                }
+            });
+        });
+
+        // 查看操作日志详情
+        document.querySelectorAll('.view-log-details').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('log-details-modal').classList.remove('hidden');
+            });
+        });
+
+        // 关闭操作日志详情
+        document.getElementById('close-log-modal').addEventListener('click', function() {
+            document.getElementById('log-details-modal').classList.add('hidden');
+        });
+        document.getElementById('close-log-modal-btn').addEventListener('click', function() {
+            document.getElementById('log-details-modal').classList.add('hidden');
+        });
+
+        // 查看错误日志详情
+        document.querySelectorAll('.view-error-details').forEach(button => {
+            button.addEventListener('click', function() {
+                document.getElementById('error-details-modal').classList.remove('hidden');
+            });
+        });
+
+        // 关闭错误日志详情
+        document.getElementById('close-error-modal').addEventListener('click', function() {
+            document.getElementById('error-details-modal').classList.add('hidden');
+        });
+        document.getElementById('close-error-modal-btn').addEventListener('click', function() {
+            document.getElementById('error-details-modal').classList.add('hidden');
+        });
+
+        // 恢复备份确认
+        document.querySelectorAll('.restore-backup').forEach(button => {
+            button.addEventListener('click', function() {
+                const filename = this.closest('tr').querySelector('td:nth-child(2)').textContent;
+                document.getElementById('backup-filename').textContent = filename;
+                document.getElementById('backup-confirm-modal').classList.remove('hidden');
+            });
+        });
+
+        // 取消恢复
+        document.getElementById('cancel-restore').addEventListener('click', function() {
+            document.getElementById('backup-confirm-modal').classList.add('hidden');
+        });
+
+        // 确认恢复
+        document.getElementById('confirm-restore').addEventListener('click', function() {
+            document.getElementById('backup-confirm-modal').classList.add('hidden');
+            // 这里可以添加恢复数据的逻辑
+            alert('数据恢复中，请稍候...');
+        });
+
+        // 手动备份
+        document.getElementById('manual-backup').addEventListener('click', function() {
+            // 模拟备份过程
+            this.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i>备份中...';
+            this.disabled = true;
+            
+            setTimeout(() => {
+                this.innerHTML = '<i class="fa fa-hdd-o mr-2"></i>手动备份';
+                this.disabled = false;
+                
+                // 显示成功提示
+                const toast = document.getElementById('backup-success-toast');
+                toast.classList.remove('translate-x-full');
+                
+                // 3秒后隐藏提示
+                setTimeout(() => {
+                    toast.classList.add('translate-x-full');
+                }, 3000);
+            }, 2000);
+        });
+
+        // 点击模态框外部关闭
+        window.addEventListener('click', function(e) {
+            const logModal = document.getElementById('log-details-modal');
+            const errorModal = document.getElementById('error-details-modal');
+            const backupModal = document.getElementById('backup-confirm-modal');
+            
+            if (e.target === logModal) {
+                logModal.classList.add('hidden');
+            }
+            if (e.target === errorModal) {
+                errorModal.classList.add('hidden');
+            }
+            if (e.target === backupModal) {
+                backupModal.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

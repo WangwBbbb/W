@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>部门管理 - 企业HR管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // Tailwind配置
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#F5222D',
+                        info: '#1890FF',
+                        dark: '#1D2129',
+                        light: '#F2F3F5'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                transition: all 0.3s ease;
+            }
+            .card-shadow:hover {
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:outline-none;
+            }
+            .btn-secondary {
+                @apply bg-white border border-gray-300 text-dark px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 focus:ring-2 focus:ring-gray-200 focus:outline-none;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all duration-300;
+            }
+            .nav-item {
+                @apply flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer;
+            }
+            .nav-item.active {
+                @apply bg-primary/10 text-primary font-medium;
+            }
+            .fade-in {
+                animation: fadeIn 0.3s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter text-dark min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="text-primary text-2xl">
+                    <i class="fa fa-id-card-o"></i>
+                </div>
+                <h1 class="text-xl font-semibold">企业HR管理系统</h1>
+                <span class="hidden md:inline-block text-gray-400 text-sm ml-3">|</span>
+                <h2 class="text-gray-600 hidden md:inline-block">部门管理模块</h2>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button id="refreshBtn" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <i class="fa fa-refresh text-gray-600"></i>
+                </button>
+                <div class="relative">
+                    <button id="userMenuBtn" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                        <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-primary/20">
+                        <span class="hidden md:inline-block text-sm font-medium">管理员</span>
+                        <i class="fa fa-angle-down text-gray-500 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="flex-1 container mx-auto px-4 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 左侧导航 -->
+            <aside class="lg:w-64 bg-white rounded-xl p-4 card-shadow">
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">部门管理</h3>
+                    <nav class="space-y-1">
+                        <div class="nav-item active" data-view="employee-departments">
+                            <i class="fa fa-sitemap w-5 text-center"></i>
+                            <span>部门列表</span>
+                        </div>
+                    </nav>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">部门统计</h3>
+                    <div class="space-y-4 px-2">
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">总部门数</div>
+                            <div class="text-2xl font-bold text-primary" id="totalDepartments">0</div>
+                        </div>
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">总员工数</div>
+                            <div class="text-2xl font-bold text-success" id="totalEmployees">0</div>
+                        </div>
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">平均部门人数</div>
+                            <div class="text-2xl font-bold text-info" id="avgEmployeesPerDept">0</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- 右侧内容视图 -->
+            <div class="flex-1 space-y-6">
+                <!-- 部门管理视图 -->
+                <div id="employee-departments" class="view-content fade-in">
+                    <div class="bg-white rounded-xl p-5 card-shadow">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold">部门管理</h2>
+                            <button class="btn-primary" id="addDepartmentBtn">
+                                <i class="fa fa-plus mr-1"></i> 新增部门
+                            </button>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="departmentsContainer">
+                            <!-- 部门数据将通过JS动态生成 -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-8">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>© 2024 企业HR管理系统 - 部门管理模块</p>
+        </div>
+    </footer>
+
+    <!-- 模态框 - 提示信息 -->
+    <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold" id="modalTitle">提示信息</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-5" id="modalContent">
+                这是一个提示框
+            </div>
+            <div class="p-4 bg-gray-50 flex justify-end gap-3" id="modalFooter">
+                <button id="modalCancel" class="btn-secondary">取消</button>
+                <button id="modalConfirm" class="btn-primary">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 部门编辑模态框 -->
+    <div id="departmentModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold" id="departmentModalTitle">新增部门</h3>
+                <button id="closeDepartmentModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <form id="departmentForm" class="p-5 space-y-4">
+                <input type="hidden" id="departmentId">
+                <div>
+                    <label for="departmentName" class="block text-sm font-medium text-gray-700 mb-1">部门名称 <span class="text-danger">*</span></label>
+                    <input type="text" id="departmentName" class="input-field" placeholder="请输入部门名称" required>
+                </div>
+                <div>
+                    <label for="departmentManager" class="block text-sm font-medium text-gray-700 mb-1">部门经理</label>
+                    <input type="text" id="departmentManager" class="input-field" placeholder="请输入部门经理姓名">
+                </div>
+                <div>
+                    <label for="departmentDesc" class="block text-sm font-medium text-gray-700 mb-1">部门描述</label>
+                    <textarea id="departmentDesc" rows="2" class="input-field" placeholder="请输入部门描述"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                    <button type="button" class="btn-secondary" id="cancelDepartment">取消</button>
+                    <button type="submit" class="btn-primary">保存</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据 - 部门数据
+        const departmentsData = [
+            { id: 1, name: '技术部', manager: '孙七', employeeCount: 42, description: '负责公司产品开发与维护' },
+            { id: 2, name: '产品部', manager: '李四', employeeCount: 15, description: '负责产品规划与设计' },
+            { id: 3, name: '运营部', manager: '吴九', employeeCount: 28, description: '负责产品运营与推广' },
+            { id: 4, name: '销售部', manager: '王五', employeeCount: 56, description: '负责产品销售与客户维护' },
+            { id: 5, name: '财务部', manager: '钱十一', employeeCount: 8, description: '负责公司财务与会计工作' },
+            { id: 6, name: '人力资源部', manager: '孙十二', employeeCount: 5, description: '负责人力资源管理' }
+        ];
+
+        // DOM 元素加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化部门列表
+            renderDepartments();
+            
+            // 更新部门统计数据
+            updateDepartmentStatistics();
+            
+            // 视图切换功能
+            initViewSwitch();
+            
+            // 部门管理功能
+            initDepartmentManagement();
+            
+            // 其他交互功能初始化
+            initOtherInteractions();
+        });
+
+        // 渲染部门列表
+        function renderDepartments() {
+            const container = document.getElementById('departmentsContainer');
+            container.innerHTML = '';
+            
+            departmentsData.forEach(dept => {
+                const deptCard = document.createElement('div');
+                deptCard.className = 'bg-white border border-gray-200 rounded-lg overflow-hidden card-shadow';
+                
+                deptCard.innerHTML = `
+                    <div class="p-4 border-b border-gray-200 bg-light">
+                        <div class="flex justify-between items-center">
+                            <h3 class="font-semibold text-lg">${dept.name}</h3>
+                            <div class="flex space-x-1">
+                                <button class="p-1 text-gray-500 hover:text-primary edit-department" data-id="${dept.id}">
+                                    <i class="fa fa-pencil"></i>
+                                </button>
+                                <button class="p-1 text-gray-500 hover:text-danger delete-department" data-id="${dept.id}" data-name="${dept.name}">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-sm text-gray-500">部门经理</span>
+                            <span class="text-sm">${dept.manager || '未设置'}</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-sm text-gray-500">员工数量</span>
+                            <span class="text-sm font-medium">${dept.employeeCount}</span>
+                        </div>
+                        <div class="mt-3">
+                            <span class="text-sm text-gray-500 block mb-1">部门描述</span>
+                            <p class="text-sm text-gray-600 text-gray-600">${dept.description || '无'}</p>
+                        </div>
+                    </div>
+                `;
+                
+                container.appendChild(deptCard);
+            });
+            
+            // 绑定部门操作按钮事件
+            bindDepartmentActionButtons();
+        }
+
+        // 绑定部门操作按钮事件
+        function bindDepartmentActionButtons() {
+            // 编辑部门
+            document.querySelectorAll('.edit-department').forEach(button => {
+                button.addEventListener('click', function() {
+                    const deptId = parseInt(this.getAttribute('data-id'));
+                    editDepartment(deptId);
+                });
+            });
+            
+            // 删除部门
+            document.querySelectorAll('.delete-department').forEach(button => {
+                button.addEventListener('click', function() {
+                    const deptId = parseInt(this.getAttribute('data-id'));
+                    const deptName = this.getAttribute('data-name');
+                    deleteDepartment(deptId, deptName);
+                });
+            });
+        }
+
+        // 更新部门统计数据
+        function updateDepartmentStatistics() {
+            // 总部门数
+            document.getElementById('totalDepartments').textContent = departmentsData.length;
+            
+            // 总员工数
+            const totalEmployees = departmentsData.reduce((sum, dept) => sum + dept.employeeCount, 0);
+            document.getElementById('totalEmployees').textContent = totalEmployees;
+            
+            // 平均部门人数
+            const avgEmployees = departmentsData.length > 0 
+                ? Math.round(totalEmployees / departmentsData.length)
+                : 0;
+            document.getElementById('avgEmployeesPerDept').textContent = avgEmployees;
+        }
+
+        // 初始化视图切换功能
+        function initViewSwitch() {
+            // 导航菜单切换
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetView = this.getAttribute('data-view');
+                    switchView(targetView);
+                    
+                    // 更新导航选中状态
+                    document.querySelectorAll('.nav-item').forEach(nav => {
+                        nav.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // 切换视图
+        function switchView(viewId) {
+            // 隐藏所有视图
+            document.querySelectorAll('.view-content').forEach(view => {
+                view.classList.add('hidden');
+            });
+            
+            // 显示目标视图
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.classList.remove('hidden');
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // 初始化部门管理功能
+        function initDepartmentManagement() {
+            // 新增部门按钮
+            document.getElementById('addDepartmentBtn').addEventListener('click', function() {
+                resetDepartmentForm();
+                document.getElementById('departmentModalTitle').textContent = '新增部门';
+                document.getElementById('departmentModal').classList.remove('hidden');
+            });
+            
+            // 关闭部门模态框
+            document.getElementById('closeDepartmentModal').addEventListener('click', function() {
+                document.getElementById('departmentModal').classList.add('hidden');
+            });
+            
+            // 取消部门操作
+            document.getElementById('cancelDepartment').addEventListener('click', function() {
+                document.getElementById('departmentModal').classList.add('hidden');
+            });
+            
+            // 部门表单提交
+            document.getElementById('departmentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleDepartmentForm();
+            });
+        }
+
+        // 编辑部门
+        function editDepartment(deptId) {
+            const department = departmentsData.find(dept => dept.id === deptId);
+            if (!department) return;
+            
+            // 填充表单数据
+            document.getElementById('departmentId').value = department.id;
+            document.getElementById('departmentName').value = department.name;
+            document.getElementById('departmentManager').value = department.manager;
+            document.getElementById('departmentDesc').value = department.description;
+            
+            // 显示模态框
+            document.getElementById('departmentModalTitle').textContent = '编辑部门';
+            document.getElementById('departmentModal').classList.remove('hidden');
+        }
+
+        // 处理部门表单
+        function handleDepartmentForm() {
+            const deptId = document.getElementById('departmentId').value;
+            const isEditMode = !!deptId;
+            
+            // 获取表单数据
+            const name = document.getElementById('departmentName').value;
+            const manager = document.getElementById('departmentManager').value;
+            const description = document.getElementById('departmentDesc').value;
+            
+            // 简单验证
+            if (!name) {
+                showModal('提示', '请填写部门名称', ['确定']);
+                return;
+            }
+            
+            if (isEditMode) {
+                // 编辑现有部门
+                const deptIndex = departmentsData.findIndex(dept => dept.id === parseInt(deptId));
+                if (deptIndex !== -1) {
+                    departmentsData[deptIndex] = {
+                        ...departmentsData[deptIndex],
+                        name, manager, description
+                    };
+                }
+                
+                showModal('成功', `部门 ${name} 信息已更新`, ['确定']);
+            } else {
+                // 添加新部门
+                const newDept = {
+                    id: departmentsData.length + 1,
+                    name,
+                    manager,
+                    description,
+                    employeeCount: 0
+                };
+                
+                // 添加到部门数据
+                departmentsData.push(newDept);
+                
+                showModal('成功', `部门 ${name} 添加成功`, ['确定']);
+            }
+            
+            // 隐藏模态框并重新渲染部门列表
+            document.getElementById('departmentModal').classList.add('hidden');
+            renderDepartments();
+            updateDepartmentStatistics();
+        }
+
+        // 删除部门
+        function deleteDepartment(deptId, deptName) {
+            // 简单模拟检查部门是否有关联员工
+            const department = departmentsData.find(dept => dept.id === deptId);
+            if (department && department.employeeCount > 0) {
+                showModal('提示', `部门 ${deptName} 下还有员工，不能删除`, ['确定']);
+                return;
+            }
+            
+            showModal('确认删除', `您确定要删除部门 <strong>${deptName}</strong> 吗？<br>此操作不可撤销。`, ['取消', '确定'], function(confirmed) {
+                if (confirmed) {
+                    // 从数据中删除部门
+                    const deptIndex = departmentsData.findIndex(dept => dept.id === deptId);
+                    if (deptIndex !== -1) {
+                        departmentsData.splice(deptIndex, 1);
+                    }
+                    
+                    // 重新渲染部门列表和统计数据
+                    renderDepartments();
+                    updateDepartmentStatistics();
+                    showModal('成功', `部门 ${deptName} 已删除`, ['确定']);
+                }
+            });
+        }
+
+        // 重置部门表单
+        function resetDepartmentForm() {
+            document.getElementById('departmentForm').reset();
+            document.getElementById('departmentId').value = '';
+        }
+
+        // 初始化其他交互功能
+        function initOtherInteractions() {
+            // 刷新按钮
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                // 显示加载动画
+                this.innerHTML = '<i class="fa fa-spinner fa-spin text-gray-600"></i>';
+                
+                // 模拟刷新数据
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fa fa-refresh text-gray-600"></i>';
+                    showModal('提示', '数据已刷新', ['确定']);
+                }, 800);
+            });
+        }
+
+        // 显示模态框
+        function showModal(title, content, buttons, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            
+            const modalFooter = document.getElementById('modalFooter');
+            modalFooter.innerHTML = '';
+            
+            // 添加按钮
+            buttons.forEach((buttonText, index) => {
+                const button = document.createElement('button');
+                button.className = index === buttons.length - 1 ? 'btn-primary' : 'btn-secondary';
+                button.textContent = buttonText;
+                
+                button.addEventListener('click', function() {
+                    document.getElementById('modal').classList.add('hidden');
+                    if (callback) {
+                        // 最后一个按钮视为确认按钮
+                        callback(index === buttons.length - 1);
+                    }
+                });
+                
+                modalFooter.appendChild(button);
+            });
+            
+            // 显示模态框
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        // 关闭模态框
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('modal').classList.add('hidden');
+        });
+    </script>
+</body>
+</html>

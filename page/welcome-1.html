@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>企业管理系统</title>
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <link rel="stylesheet" href="../lib/layui-v2.6.3/css/layui.css" media="all">
+    <link rel="stylesheet" href="../lib/font-awesome-4.7.0/css/font-awesome.min.css" media="all">
+    <link rel="stylesheet" href="../css/public.css" media="all">
+    <style>
+        .layui-card {border:1px solid #f2f2f2;border-radius:5px;transition: all 0.3s ease;}
+        .layui-card:hover {box-shadow: 0 3px 10px rgba(0,0,0,0.08);}
+        .icon {margin-right:10px;}
+        .icon-user {color:#1890ff!important;} /* 用户管理模块图标色 */
+        .icon-emp {color:#52c41a!important;} /* 员工管理模块图标色 */
+        .icon-dept {color:#faad14!important;} /* 部门管理模块图标色 */
+        .icon-att {color:#13c2c2!important;} /* 考勤管理模块图标色 */
+        .icon-sal {color:#eb2f96!important;} /* 薪资管理模块图标色 */
+        .icon-stat {color:#722ed1!important;} /* 统计模块图标色 */
+        .icon-setting {color:#f5222d!important;} /* 系统设置模块图标色 */
+        
+        .layuimini-qiuck-module {text-align:center;margin-top: 10px}
+        .layuimini-qiuck-module a i {display:inline-block;width:100%;height:60px;line-height:60px;text-align:center;border-radius:4px;font-size:30px;background-color:#F8F8F8;color:#333;transition:all .3s;-webkit-transition:all .3s;}
+        .layuimini-qiuck-module a:hover i {transform: translateY(-5px);}
+        .layuimini-qiuck-module a cite {position:relative;top:2px;display:block;color:#666;text-overflow:ellipsis;overflow:hidden;white-space:nowrap;font-size:14px;}
+        
+        .welcome-module {width:100%;height:210px;}
+        .panel {background-color:#fff;border:1px solid transparent;border-radius:4px;-webkit-box-shadow:0 1px 1px rgba(0,0,0,.05);box-shadow:0 1px 1px rgba(0,0,0,.05);transition: all 0.3s ease;}
+        .panel:hover {transform: translateY(-3px);box-shadow: 0 5px 15px rgba(0,0,0,0.08);}
+        .panel-body {padding:15px}
+        .panel-title {margin-top:0;margin-bottom:0;font-size:14px;color:#333;font-weight:500;}
+        .label {display:inline;padding:.2em .6em .3em;font-size:75%;font-weight:700;line-height:1;color:#fff;text-align:center;white-space:nowrap;vertical-align:baseline;border-radius:.25em;margin-top: .3em;}
+        .layui-red {color:red}
+        .main_btn > p {height:40px;}
+        .layui-bg-number {background-color:#F8F8F8;}
+        
+        .layuimini-notice:hover {background:#f6f6f6;}
+        .layuimini-notice {padding:10px 16px;clear:both;font-size:12px !important;cursor:pointer;position:relative;transition:background 0.2s ease-in-out;border-radius:4px;margin-bottom:5px;}
+        .layuimini-notice-title,.layuimini-notice-label {
+            padding-right: 70px !important;text-overflow:ellipsis!important;overflow:hidden!important;white-space:nowrap!important;}
+        .layuimini-notice-title {line-height:28px;font-size:14px;color:#333;}
+        .layuimini-notice-extra {position:absolute;top:50%;margin-top:-8px;right:16px;display:inline-block;height:16px;color:#999;}
+        
+        .chart-container {position: relative; width: 100%; height: 400px;}
+        .badge {display: inline-block;padding: 2px 8px;background-color: #f5222d;color: white;border-radius: 12px;font-size: 12px;margin-left: 5px;}
+        .header-notice {position: relative;}
+    </style>
+</head>
+<body>
+<div class="layuimini-container">
+    <div class="layuimini-main">
+        <!-- 页面标题和用户信息 -->
+        <div class="layui-row layui-col-space15" style="margin-bottom: 15px;">
+            <div class="layui-col-md8">
+                <h2>欢迎使用企业管理系统</h2>
+                <p style="color: #666;">今天是 <span id="currentDate"></span>，星期三</p>
+            </div>
+            <div class="layui-col-md4" style="text-align: right; padding-top: 15px;">
+                <div class="layui-btn-group">
+                    <button class="layui-btn layui-btn-primary" id="refreshDashboard">
+                        <i class="fa fa-refresh"></i> 刷新数据
+                    </button>
+                    <button class="layui-btn" id="personalCenter">
+                        <i class="fa fa-user-circle"></i> 个人中心
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 页面主栅格：左侧8列（功能区）+ 右侧4列（信息区） -->
+        <div class="layui-row layui-col-space15">
+            <div class="layui-col-md8">
+                <div class="layui-row layui-col-space15">
+                    <!-- 模块1：HR核心数据统计 -->
+                    <div class="layui-col-md12">
+                        <div class="layui-card">
+                            <div class="layui-card-header"><i class="fa fa-dashboard icon"></i>核心数据概览</div>
+                            <div class="layui-card-body">
+                                <div class="layui-row layui-col-space15">
+                                    <!-- 员工总数 -->
+                                    <div class="layui-col-xs3">
+                                        <div class="panel layui-bg-number">
+                                            <div class="panel-body">
+                                                <div class="panel-title">
+                                                    <span class="label pull-right layui-bg-blue">实时</span>
+                                                    <h5>员工总数</h5>
+                                                </div>
+                                                <div class="panel-content">
+                                                    <h1 class="no-margins">248</h1>
+                                                    <small>企业当前在职员工</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 本月新增员工 -->
+                                    <div class="layui-col-xs3">
+                                        <div class="panel layui-bg-number">
+                                            <div class="panel-body">
+                                                <div class="panel-title">
+                                                    <span class="label pull-right layui-bg-green">本月</span>
+                                                    <h5>新增员工</h5>
+                                                </div>
+                                                <div class="panel-content">
+                                                    <h1 class="no-margins">12</h1>
+                                                    <small>本月入职员工数</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 月度考勤率 -->
+                                    <div class="layui-col-xs3">
+                                        <div class="panel layui-bg-number">
+                                            <div class="panel-body">
+                                                <div class="panel-title">
+                                                    <span class="label pull-right layui-bg-orange">本月</span>
+                                                    <h5>考勤率</h5>
+                                                </div>
+                                                <div class="panel-content">
+                                                    <h1 class="no-margins">98.2%</h1>
+                                                    <small>正常出勤占比</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 本月薪资总额 -->
+                                    <div class="layui-col-xs3">
+                                        <div class="panel layui-bg-number">
+                                            <div class="panel-body">
+                                                <div class="panel-title">
+                                                    <span class="label pull-right layui-bg-red">本月</span>
+                                                    <h5>薪资总额</h5>
+                                                </div>
+                                                <div class="panel-content">
+                                                    <h1 class="no-margins">186.5万</h1>
+                                                    <small>待发放薪资总额</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模块2：HR快捷入口 -->
+                    <div class="layui-col-md12">
+                        <div class="layui-card">
+                            <div class="layui-card-header"><i class="fa fa-rocket icon"></i>功能模块入口</div>
+                            <div class="layui-card-body">
+                                <div class="layui-row layui-col-space15 layuimini-qiuck">
+                                    <!-- 1.用户管理 -->
+                                    <div class="layui-col-xs2 layuimini-qiuck-module">
+                                        <a href="javascript:" layuimini-content-href="page/user-management.html" data-title="用户管理" data-icon="fa-user-circle">
+                                            <i class="fa fa-user-circle icon-user"></i>
+                                            <cite>用户管理</cite>
+                                        </a>
+                                    </div>
+                                    <!-- 2.员工基础信息管理 -->
+                                    <div class="layui-col-xs2 layuimini-qiuck-module">
+                                        <a href="javascript:" layuimini-content-href="page/employee-management.html" data-title="员工管理" data-icon="fa-users">
+                                            <i class="fa fa-users icon-emp"></i>
+                                            <cite>员工管理</cite>
+                                        </a>
+                                    </div>
+                                    <!-- 3.部门管理 -->
+                                    <div class="layui-col-xs2 layuimini-qiuck-module">
+                                        <a href="javascript:" layuimini-content-href="page/department-management.html" data-title="部门管理" data-icon="fa-sitemap">
+                                            <i class="fa fa-sitemap icon-dept"></i>
+                                            <cite>部门管理</cite>
+                                        </a>
+                                    </div>
+                                    <!-- 4.考勤管理 -->
+                                    <div class="layui-col-xs2 layuimini-qiuck-module">
+                                        <a href="javascript:" layuimini-content-href="page/attendance-management.html" data-title="考勤管理" data-icon="fa-calendar-check-o">
+                                            <i class="fa fa-calendar-check-o icon-att"></i>
+                                            <cite>考勤管理</cite>
+                                        </a>
+                                    </div>
+                                    <!-- 5.薪资管理 -->
+                                    <div class="layui-col-xs2 layuimini-qiuck-module">
+                                        <a href="javascript:" layuimini-content-href="page/pay-management.html" data-title="薪资管理" data-icon="fa-credit-card">
+                                            <i class="fa fa-credit-card icon-sal"></i>
+                                            <cite>薪资管理</cite>
+                                        </a>
+                                    </div>
+                                    <!-- 6.数据统计与分析 -->
+                                    <div class="layui-col-xs2 layuimini-qiuck-module">
+                                        <a href="javascript:" layuimini-content-href="page/data-statistics.html" data-title="数据统计" data-icon="fa-bar-chart">
+                                            <i class="fa fa-bar-chart icon-stat"></i>
+                                            <cite>数据统计</cite>
+                                        </a>
+                                    </div>
+                                    <!-- 7.系统设置 -->
+                                    <div class="layui-col-xs2 layuimini-qiuck-module">
+                                        <a href="javascript:" layuimini-content-href="page/system setting.html" data-title="系统设置" data-icon="fa-cogs">
+                                            <i class="fa fa-cogs icon-setting"></i>
+                                            <cite>系统设置</cite>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 模块3：HR数据可视化报表 -->
+                    <div class="layui-col-md12">
+                        <div class="layui-card">
+                            <div class="layui-card-header">
+                                <i class="fa fa-line-chart icon icon-stat"></i>HR数据报表
+                                <div class="layui-btn-group layui-btn-group-sm" style="float: right;">
+                                    <button class="layui-btn layui-btn-primary chart-type" data-type="deptEmp">部门员工分布</button>
+                                    <button class="layui-btn layui-btn-primary chart-type" data-type="empTrend">员工变化趋势</button>
+                                    <button class="layui-btn layui-btn-primary chart-type" data-type="attendance">考勤状态分析</button>
+                                    <button class="layui-btn layui-btn-primary chart-type" data-type="salary">薪资结构分析</button>
+                                </div>
+                            </div>
+                            <div class="layui-card-body">
+                                <div id="hr-echarts" class="chart-container"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 右侧信息区（4列） -->
+            <div class="layui-col-md4">
+                <!-- 模块1：待办事项 -->
+                <div class="layui-card">
+                    <div class="layui-card-header header-notice">
+                        <i class="fa fa-flag icon icon-att"></i>待办事项
+                        <span class="badge">5</span>
+                    </div>
+                    <div class="layui-card-body layui-text">
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">审批员工请假申请 <span class="label layui-bg-orange">12条</span></div>
+                            <div class="layuimini-notice-extra">今天截止</div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">审批加班申请 <span class="label layui-bg-blue">8条</span></div>
+                            <div class="layuimini-notice-extra">今天截止</div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">确认5月考勤数据 <span class="label layui-bg-green">1项</span></div>
+                            <div class="layuimini-notice-extra">明天截止</div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">审核新员工入职资料 <span class="label layui-bg-purple">3条</span></div>
+                            <div class="layuimini-notice-extra">3天后截止</div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">更新部门组织架构 <span class="label layui-bg-red">1项</span></div>
+                            <div class="layuimini-notice-extra">本周内完成</div>
+                        </div>
+                        <a href="javascript:;" layuimini-content-href="page/tasks.html" style="display: block; text-align: center; margin-top: 10px; color: #1E9FFF;">
+                            查看全部待办 <i class="fa fa-angle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 模块2：HR系统公告 -->
+                <div class="layui-card">
+                    <div class="layui-card-header"><i class="fa fa-bullhorn icon icon-sal"></i>系统公告</div>
+                    <div class="layui-card-body layui-text">
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">2024年5月薪资计算完成通知</div>
+                            <div class="layuimini-notice-extra">2024-05-10</div>
+                            <div class="layuimini-notice-content layui-hide">
+                                各位部门管理员：<br>
+                                2024年5月员工薪资已完成计算，包含基本工资、绩效、加班费及社保扣除，合计总额186.5万元。<br>
+                                请于5月15日前完成部门薪资核对，5月20日统一发放；员工可在「薪资管理-个人薪资查询」查看明细。
+                            </div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">6月考勤规则调整通知</div>
+                            <div class="layuimini-notice-extra">2024-05-05</div>
+                            <div class="layuimini-notice-content layui-hide">
+                                自2024年6月1日起，考勤打卡时间调整如下：<br>
+                                1. 上班打卡有效时段：8:00-9:00（原8:30-9:30）<br>
+                                2. 下班打卡有效时段：17:30-18:30（原17:00-18:00）<br>
+                                3. 迟到15分钟内扣20元/次，超过15分钟扣50元/次，请各部门提前通知员工。
+                            </div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">2024年员工体检安排</div>
+                            <div class="layuimini-notice-extra">2024-04-28</div>
+                            <div class="layuimini-notice-content layui-hide">
+                                2024年员工体检时间为5月15日-6月15日，体检机构：市第一人民医院体检中心<br>
+                                1. 员工可在「员工管理-体检预约」选择具体日期<br>
+                                2. 体检前需空腹，携带身份证原件<br>
+                                3. 逾期未预约视为自动放弃，如需补检需申请并自费。
+                            </div>
+                        </div>
+                        <a href="javascript:;" layuimini-content-href="page/notices.html" style="display: block; text-align: center; margin-top: 10px; color: #1E9FFF;">
+                            查看全部公告 <i class="fa fa-angle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 模块3：考勤异常提醒 -->
+                <div class="layui-card">
+                    <div class="layui-card-header header-notice">
+                        <i class="fa fa-exclamation-triangle icon icon-att"></i>考勤异常提醒
+                        <span class="badge">3</span>
+                    </div>
+                    <div class="layui-card-body layui-text">
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">张三 连续3天未打卡</div>
+                            <div class="layuimini-notice-extra">技术部</div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">李四 本月迟到已达6次</div>
+                            <div class="layuimini-notice-extra">销售部</div>
+                        </div>
+                        <div class="layuimini-notice">
+                            <div class="layuimini-notice-title">王五 未提交请假单缺勤</div>
+                            <div class="layuimini-notice-extra">行政部</div>
+                        </div>
+                        <a href="javascript:;" layuimini-content-href="page/attendance-exception.html" style="display: block; text-align: center; margin-top: 10px; color: #1E9FFF;">
+                            处理异常考勤 <i class="fa fa-angle-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 模块4：系统版本信息 -->
+                <div class="layui-card">
+                    <div class="layui-card-header"><i class="fa fa-info-circle icon icon-dept"></i>系统信息</div>
+                    <div class="layui-card-body layui-text">
+                        <table class="layui-table">
+                            <colgroup>
+                                <col width="100">
+                                <col>
+                            </colgroup>
+                            <tbody>
+                            <tr>
+                                <td>系统名称</td>
+                                <td>企业HR管理系统</td>
+                            </tr>
+                            <tr>
+                                <td>当前版本</td>
+                                <td>V3.2.0（基于LayuiMini V2.0）</td>
+                            </tr>
+                            <tr>
+                                <td>最近更新</td>
+                                <td>2024-05-01（新增薪资自动计算公式）</td>
+                            </tr>
+                            <tr>
+                                <td>技术支持</td>
+                                <td>
+                                    联系电话：400-888-XXXX<br>
+                                    服务邮箱：hr-support@company.com
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>数据备份</td>
+                                <td>
+                                    <button class="layui-btn layui-btn-xs layui-btn-normal" id="manualBackup">
+                                        <i class="fa fa-download"></i> 手动备份
+                                    </button>
+                                    <span style="margin-left:10px;color:#999">上次：2024-05-01</span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 引入JS资源 -->
+<script src="../lib/layui-v2.6.3/layui.js" charset="utf-8"></script>
+<script src="../js/lay-config.js?v=1.0.4" charset="utf-8"></script>
+<script>
+    layui.use(['layer', 'miniTab', 'echarts', 'form'], function () {
+        var $ = layui.jquery,
+            layer = layui.layer,
+            miniTab = layui.miniTab,
+            echarts = layui.echarts,
+            form = layui.form;
+
+        // 1. 设置当前日期
+        function setCurrentDate() {
+            var date = new Date();
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            var day = date.getDate();
+            $('#currentDate').text(year + '年' + month + '月' + day + '日');
+        }
+        setCurrentDate();
+
+        // 2. 初始化标签页监听（支持多窗口操作）
+        miniTab.listen();
+
+        // 3. 系统公告点击展开详情
+        $('body').on('click', '.layuimini-notice', function () {
+            var title = $(this).children('.layuimini-notice-title').text(),
+                noticeTime = $(this).children('.layuimini-notice-extra').text(),
+                content = $(this).children('.layuimini-notice-content').html();
+            
+            // 如果没有详情内容则不弹出
+            if (!content || content.trim() === '') {
+                return;
+            }
+            
+            var html = '<div style="padding:15px 20px; text-align:justify; line-height: 24px;border-bottom:1px solid #e2e2e2;background-color: #fafafa;">' + content + '</div>';
+            
+            parent.layer.open({
+                type: 1,
+                title: title + ' <span style="float:right; font-size:12px; color:#999; font-weight:normal;">' + noticeTime + '</span>',
+                area: '450px;',
+                shade: 0.3,
+                id: 'hr-notice',
+                btn: ['我知道了'],
+                btnAlign: 'c',
+                moveType: 1,
+                content: html
+            });
+        });
+
+        // 4. 初始化HR报表
+        var hrChart = echarts.init(document.getElementById('hr-echarts'), 'walden');
+        
+        // 4.1 各部门员工分布（柱状图）
+        var deptEmpOption = {
+            tooltip: { trigger: 'axis', axisPointer: { type: 'shadow' } },
+            legend: { data: ['在职员工数'] },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                data: ['技术部', '产品部', '运营部', '销售部', '财务部', '行政部', 'HR部']
+            },
+            yAxis: { type: 'value', name: '员工数（人）' },
+            series: [{
+                name: '在职员工数',
+                type: 'bar',
+                data: [86, 28, 35, 62, 12, 18, 7],
+                itemStyle: { color: '#1890ff' },
+                barWidth: '60%'
+            }]
+        };
+
+        // 4.2 近6个月员工变化趋势（折线图）
+        var empTrendOption = {
+            tooltip: { trigger: 'axis' },
+            legend: { data: ['新增员工', '离职员工', '月末总数'] },
+            grid: { left: '3%', right: '4%', bottom: '3%', containLabel: true },
+            xAxis: {
+                type: 'category',
+                data: ['2024-01', '2024-02', '2024-03', '2024-04', '2024-05', '2024-06']
+            },
+            yAxis: { type: 'value', name: '员工数（人）' },
+            series: [
+                { name: '新增员工', type: 'line', data: [15, 8, 22, 18, 12, 5], itemStyle: { color: '#52c41a' } },
+                { name: '离职员工', type: 'line', data: [5, 3, 8, 6, 4, 2], itemStyle: { color: '#f5222d' } },
+                { name: '月末总数', type: 'line', data: [213, 218, 232, 244, 248, 251], itemStyle: { color: '#1890ff' }, lineStyle: { width: 3 } }
+            ]
+        };
+
+        // 4.3 月度考勤状态分布（饼图）
+        var attendanceOption = {
+            tooltip: { trigger: 'item' },
+            legend: { orient: 'vertical', left: 10, data: ['正常出勤', '迟到', '早退', '请假', '缺勤'] },
+            series: [{
+                name: '考勤状态占比',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: { show: false, position: 'center' },
+                emphasis: {
+                    label: { show: true, fontSize: 16, fontWeight: 'bold' }
+                },
+                labelLine: { show: false },
+                data: [
+                    { value: 9820, name: '正常出勤' },
+                    { value: 156, name: '迟到' },
+                    { value: 82, name: '早退' },
+                    { value: 328, name: '请假' },
+                    { value: 64, name: '缺勤' }
+                ],
+                color: ['#52c41a', '#faad14', '#fa8c16', '#1890ff', '#f5222d']
+            }]
+        };
+
+        // 4.4 薪资结构分析（饼图）
+        var salaryOption = {
+            tooltip: { trigger: 'item' },
+            legend: { orient: 'vertical', left: 10, data: ['基本工资', '绩效工资', '补贴', '社保', '个税'] },
+            series: [{
+                name: '薪资结构占比',
+                type: 'pie',
+                radius: ['40%', '70%'],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                    borderRadius: 10,
+                    borderColor: '#fff',
+                    borderWidth: 2
+                },
+                label: { show: false, position: 'center' },
+                emphasis: {
+                    label: { show: true, fontSize: 16, fontWeight: 'bold' }
+                },
+                labelLine: { show: false },
+                data: [
+                    { value: 65, name: '基本工资' },
+                    { value: 20, name: '绩效工资' },
+                    { value: 8, name: '补贴' },
+                    { value: 5, name: '社保' },
+                    { value: 2, name: '个税' }
+                ],
+                color: ['#1890ff', '#52c41a', '#faad14', '#722ed1', '#eb2f96']
+            }]
+        };
+
+        // 初始加载「各部门员工分布」图表
+        hrChart.setOption(deptEmpOption);
+        // 设置默认选中的图表类型按钮样式
+        $('.chart-type[data-type="deptEmp"]').addClass('layui-btn-normal').removeClass('layui-btn-primary');
+
+        // 5. 报表类型切换（按钮点击事件）
+        $('.chart-type').on('click', function () {
+            var type = $(this).data('type');
+            
+            // 更新按钮样式
+            $('.chart-type').addClass('layui-btn-primary').removeClass('layui-btn-normal');
+            $(this).addClass('layui-btn-normal').removeClass('layui-btn-primary');
+            
+            // 切换图表
+            switch (type) {
+                case 'deptEmp':
+                    hrChart.setOption(deptEmpOption);
+                    break;
+                case 'empTrend':
+                    hrChart.setOption(empTrendOption);
+                    break;
+                case 'attendance':
+                    hrChart.setOption(attendanceOption);
+                    break;
+                case 'salary':
+                    hrChart.setOption(salaryOption);
+                    break;
+            }
+        });
+
+        // 6. 窗口缩放时图表自适应
+        window.onresize = function () {
+            hrChart.resize();
+        };
+
+        // 7. 手动备份按钮点击事件
+        $('#manualBackup').on('click', function () {
+            layer.confirm('确认执行手动数据备份？备份过程约1-2分钟，期间请勿关闭页面', {
+                title: '数据备份确认',
+                btn: ['确认备份', '取消']
+            }, function () {
+                // 模拟备份请求
+                layer.msg('正在备份数据...', { icon: 16, time: 0, shade: 0.3 });
+                setTimeout(function () {
+                    layer.closeAll('loading');
+                    layer.msg('数据备份成功！可在「系统设置-数据备份」下载文件', { icon: 1 });
+                }, 1500);
+            });
+        });
+
+        // 8. 刷新仪表盘按钮事件
+        $('#refreshDashboard').on('click', function () {
+            layer.msg('正在刷新数据...', { icon: 16, time: 0, shade: 0.3 });
+            setTimeout(function () {
+                layer.closeAll('loading');
+                layer.msg('数据刷新完成', { icon: 1 });
+            }, 1000);
+        });
+
+        // 9. 个人中心按钮事件
+        $('#personalCenter').on('click', function () {
+            miniTab.openNewTabByIframe({
+                title: "个人中心",
+                url: "page/personal-center.html",
+                icon: "fa-user-circle"
+            });
+        });
+    });
+</script>
+</body>
+</html>

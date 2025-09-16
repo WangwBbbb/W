@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工管理 - 企业HR管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // Tailwind配置
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#F5222D',
+                        info: '#1890FF',
+                        dark: '#1D2129',
+                        light: '#F2F3F5'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                transition: all 0.3s ease;
+            }
+            .card-shadow:hover {
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:outline-none;
+            }
+            .btn-secondary {
+                @apply bg-white border border-gray-300 text-dark px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 focus:ring-2 focus:ring-gray-200 focus:outline-none;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all duration-300;
+            }
+            .nav-item {
+                @apply flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer;
+            }
+            .nav-item.active {
+                @apply bg-primary/10 text-primary font-medium;
+            }
+            .fade-in {
+                animation: fadeIn 0.3s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter text-dark min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="text-primary text-2xl">
+                    <i class="fa fa-id-card-o"></i>
+                </div>
+                <h1 class="text-xl font-semibold">企业HR管理系统</h1>
+                <span class="hidden md:inline-block text-gray-400 text-sm ml-3">|</span>
+                <h2 class="text-gray-600 hidden md:inline-block">员工管理模块</h2>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button id="refreshBtn" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <i class="fa fa-refresh text-gray-600"></i>
+                </button>
+                <div class="relative">
+                    <button id="userMenuBtn" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                        <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-primary/20">
+                        <span class="hidden md:inline-block text-sm font-medium">管理员</span>
+                        <i class="fa fa-angle-down text-gray-500 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="flex-1 container mx-auto px-4 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 左侧导航 -->
+            <aside class="lg:w-64 bg-white rounded-xl p-4 card-shadow">
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">员工管理</h3>
+                    <nav class="space-y-1">
+                        <div class="nav-item active" data-view="employee-list">
+                            <i class="fa fa-users w-5 text-center"></i>
+                            <span>员工列表</span>
+                        </div>
+                        <div class="nav-item" data-view="employee-add">
+                            <i class="fa fa-user-plus w-5 text-center"></i>
+                            <span>添加员工</span>
+                        </div>
+                    </nav>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">员工统计</h3>
+                    <div class="space-y-4 px-2">
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">总员工数</div>
+                            <div class="text-2xl font-bold text-primary" id="totalEmployees">0</div>
+                        </div>
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">本月新增</div>
+                            <div class="text-2xl font-bold text-success">5</div>
+                        </div>
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">离职员工</div>
+                            <div class="text-2xl font-bold text-danger">2</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- 右侧内容视图 -->
+            <div class="flex-1 space-y-6">
+                <!-- 员工列表视图 -->
+                <div id="employee-list" class="view-content fade-in">
+                    <div class="bg-white rounded-xl p-5 card-shadow">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <h2 class="text-xl font-semibold">员工列表</h2>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="relative">
+                                    <input type="text" id="employeeSearch" placeholder="搜索员工姓名/工号" class="input-field pl-10 w-full sm:w-64">
+                                    <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                                </div>
+                                <button class="btn-primary" data-view="employee-add">
+                                    <i class="fa fa-plus mr-1"></i> 新增员工
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
+                                            工号
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            姓名
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            职位
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            部门
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            入职日期
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            状态
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
+                                            操作
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="employeeTableBody">
+                                    <!-- 员工数据将通过JS动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-6">
+                            <div class="text-sm text-gray-500">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium" id="totalEmployeesText">0</span> 条
+                            </div>
+                            <div class="flex space-x-1">
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
+                                    <i class="fa fa-angle-left"></i>
+                                </button>
+                                <button class="px-3 py-1 border border-primary bg-primary text-white rounded">1</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50">
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 添加员工视图 -->
+                <div id="employee-add" class="view-content hidden fade-in">
+                    <div class="bg-white rounded-xl p-5 card-shadow">
+                        <div class="flex items-center justify-between mb-6">
+                            <h2 class="text-xl font-semibold" id="employeeFormTitle">添加员工</h2>
+                            <button class="text-gray-500 hover:text-gray-700" data-view="employee-list">
+                                <i class="fa fa-arrow-left mr-1"></i> 返回列表
+                            </button>
+                        </div>
+                        
+                        <form id="employeeForm" class="space-y-5">
+                            <input type="hidden" id="employeeId">
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label for="emp-id" class="block text-sm font-medium text-gray-700 mb-1">员工工号 <span class="text-danger">*</span></label>
+                                    <input type="text" id="emp-id" class="input-field" placeholder="自动生成" readonly>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-name" class="block text-sm font-medium text-gray-700 mb-1">姓名 <span class="text-danger">*</span></label>
+                                    <input type="text" id="emp-name" class="input-field" placeholder="请输入员工姓名" required>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-gender" class="block text-sm font-medium text-gray-700 mb-1">性别 <span class="text-danger">*</span></label>
+                                    <select id="emp-gender" class="input-field" required>
+                                        <option value="">请选择</option>
+                                        <option value="male">男</option>
+                                        <option value="female">女</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-birth" class="block text-sm font-medium text-gray-700 mb-1">出生日期</label>
+                                    <input type="date" id="emp-birth" class="input-field">
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-phone" class="block text-sm font-medium text-gray-700 mb-1">联系电话 <span class="text-danger">*</span></label>
+                                    <input type="tel" id="emp-phone" class="input-field" placeholder="请输入手机号码" required>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-email" class="block text-sm font-medium text-gray-700 mb-1">电子邮箱</label>
+                                    <input type="email" id="emp-email" class="input-field" placeholder="请输入电子邮箱">
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label for="emp-education" class="block text-sm font-medium text-gray-700 mb-1">学历 <span class="text-danger">*</span></label>
+                                    <select id="emp-education" class="input-field" required>
+                                        <option value="">请选择</option>
+                                        <option value="highschool">高中及以下</option>
+                                        <option value="associate">专科</option>
+                                        <option value="bachelor">本科</option>
+                                        <option value="master">硕士</option>
+                                        <option value="phd">博士及以上</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-department" class="block text-sm font-medium text-gray-700 mb-1">所属部门 <span class="text-danger">*</span></label>
+                                    <select id="emp-department" class="input-field" required>
+                                        <option value="">请选择部门</option>
+                                        <option value="tech">技术部</option>
+                                        <option value="product">产品部</option>
+                                        <option value="operation">运营部</option>
+                                        <option value="sales">销售部</option>
+                                        <option value="finance">财务部</option>
+                                        <option value="hr">人力资源部</option>
+                                    </select>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-position" class="block text-sm font-medium text-gray-700 mb-1">职位 <span class="text-danger">*</span></label>
+                                    <input type="text" id="emp-position" class="input-field" placeholder="请输入职位名称" required>
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                                <div>
+                                    <label for="emp-join-date" class="block text-sm font-medium text-gray-700 mb-1">入职日期 <span class="text-danger">*</span></label>
+                                    <input type="date" id="emp-join-date" class="input-field" required>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-salary" class="block text-sm font-medium text-gray-700 mb-1">薪资(元) <span class="text-danger">*</span></label>
+                                    <input type="number" id="emp-salary" class="input-field" placeholder="请输入薪资" required>
+                                </div>
+                                
+                                <div>
+                                    <label for="emp-status" class="block text-sm font-medium text-gray-700 mb-1">员工状态 <span class="text-danger">*</span></label>
+                                    <select id="emp-status" class="input-field" required>
+                                        <option value="active">在职</option>
+                                        <option value="probation">试用期</option>
+                                        <option value="leave">请假</option>
+                                        <option value="resigned">已离职</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label for="emp-address" class="block text-sm font-medium text-gray-700 mb-1">联系地址</label>
+                                <textarea id="emp-address" rows="2" class="input-field" placeholder="请输入联系地址"></textarea>
+                            </div>
+                            
+                            <div>
+                                <label for="emp-emergency-contact" class="block text-sm font-medium text-gray-700 mb-1">紧急联系人</label>
+                                <input type="text" id="emp-emergency-contact" class="input-field" placeholder="请输入紧急联系人姓名">
+                            </div>
+                            
+                            <div>
+                                <label for="emp-emergency-phone" class="block text-sm font-medium text-gray-700 mb-1">紧急联系人电话</label>
+                                <input type="tel" id="emp-emergency-phone" class="input-field" placeholder="请输入紧急联系人电话">
+                            </div>
+                            
+                            <div>
+                                <label for="emp-remark" class="block text-sm font-medium text-gray-700 mb-1">备注信息</label>
+                                <textarea id="emp-remark" rows="3" class="input-field" placeholder="请输入备注信息（选填）"></textarea>
+                            </div>
+                            
+                            <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                                <button type="button" class="btn-secondary" data-view="employee-list">取消</button>
+                                <button type="submit" class="btn-primary" id="employeeFormSubmit">
+                                    <i class="fa fa-check mr-1"></i> 保存员工信息
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-8">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>© 2024 企业HR管理系统 - 员工管理模块</p>
+        </div>
+    </footer>
+
+    <!-- 模态框 - 提示信息 -->
+    <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold" id="modalTitle">提示信息</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-5" id="modalContent">
+                这是一个提示框
+            </div>
+            <div class="p-4 bg-gray-50 flex justify-end gap-3" id="modalFooter">
+                <button id="modalCancel" class="btn-secondary">取消</button>
+                <button id="modalConfirm" class="btn-primary">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 模拟数据 - 员工数据
+        const employeesData = [
+            { id: 'EMP' + generateEmployeeId(1), name: '张三', gender: 'male', birth: '1990-05-15', 
+              phone: '13800138000', email: 'zhangsan@example.com', education: 'bachelor',
+              department: '技术部', position: '高级工程师', joinDate: '2018-03-10', salary: 15000,
+              status: 'active', address: '北京市海淀区', emergencyContact: '李四', 
+              emergencyPhone: '13900139000', remark: '核心技术人员' },
+              
+            { id: 'EMP' + generateEmployeeId(2), name: '李四', gender: 'female', birth: '1992-08-22', 
+              phone: '13900139000', email: 'lisi@example.com', education: 'master',
+              department: '产品部', position: '产品经理', joinDate: '2019-05-18', salary: 18000,
+              status: 'active', address: '北京市朝阳区', emergencyContact: '张三', 
+              emergencyPhone: '13800138000', remark: '' },
+              
+            { id: 'EMP' + generateEmployeeId(3), name: '王五', gender: 'male', birth: '1995-03-10', 
+              phone: '13700137000', email: 'wangwu@example.com', education: 'bachelor',
+              department: '销售部', position: '销售总监', joinDate: '2020-01-05', salary: 20000,
+              status: 'active', address: '上海市浦东新区', emergencyContact: '赵六', 
+              emergencyPhone: '13600136000', remark: '' },
+              
+            { id: 'EMP' + generateEmployeeId(4), name: '赵六', gender: 'female', birth: '1993-11-05', 
+              phone: '13600136000', email: 'zhaoliu@example.com', education: 'bachelor',
+              department: '财务部', position: '会计', joinDate: '2021-07-20', salary: 12000,
+              status: 'probation', address: '广州市天河区', emergencyContact: '王五', 
+              emergencyPhone: '13700137000', remark: '试用期' },
+              
+            { id: 'EMP' + generateEmployeeId(5), name: '孙七', gender: 'male', birth: '1988-09-18', 
+              phone: '13500135000', email: 'sunqi@example.com', education: 'phd',
+              department: '技术部', position: '技术总监', joinDate: '2017-02-15', salary: 25000,
+              status: 'leave', address: '深圳市南山区', emergencyContact: '周八', 
+              emergencyPhone: '13400134000', remark: '病假' },
+              
+            { id: 'EMP' + generateEmployeeId(6), name: '周八', gender: 'female', birth: '1994-06-30', 
+              phone: '13400134000', email: 'zhouba@example.com', education: 'associate',
+              department: '人力资源部', position: 'HR专员', joinDate: '2019-11-10', salary: 10000,
+              status: 'active', address: '杭州市西湖区', emergencyContact: '孙七', 
+              emergencyPhone: '13500135000', remark: '' },
+              
+            { id: 'EMP' + generateEmployeeId(7), name: '吴九', gender: 'male', birth: '1991-04-25', 
+              phone: '13300133000', email: 'wujiu@example.com', education: 'bachelor',
+              department: '运营部', position: '运营经理', joinDate: '2018-08-05', salary: 16000,
+              status: 'active', address: '成都市锦江区', emergencyContact: '郑十', 
+              emergencyPhone: '13200132000', remark: '' },
+              
+            { id: 'EMP' + generateEmployeeId(8), name: '郑十', gender: 'female', birth: '1996-12-12', 
+              phone: '13200132000', email: 'zhengshi@example.com', education: 'bachelor',
+              department: '技术部', position: '前端开发', joinDate: '2022-03-18', salary: 13000,
+              status: 'resigned', address: '武汉市洪山区', emergencyContact: '吴九', 
+              emergencyPhone: '13300133000', remark: '已离职' }
+        ];
+
+        // DOM 元素加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 初始化员工列表
+            renderEmployeeList();
+            
+            // 更新员工统计数据
+            updateEmployeeStatistics();
+            
+            // 视图切换功能
+            initViewSwitch();
+            
+            // 表单提交处理
+            initFormSubmissions();
+            
+            // 其他交互功能初始化
+            initOtherInteractions();
+        });
+
+        // 生成员工ID
+        function generateEmployeeId(num) {
+            return num.toString().padStart(4, '0');
+        }
+
+        // 渲染员工列表
+        function renderEmployeeList() {
+            const tableBody = document.getElementById('employeeTableBody');
+            tableBody.innerHTML = '';
+            
+            employeesData.forEach(employee => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                // 状态标签样式
+                let statusClass, statusText;
+                switch(employee.status) {
+                    case 'active':
+                        statusClass = 'bg-success/10 text-success';
+                        statusText = '在职';
+                        break;
+                    case 'probation':
+                        statusClass = 'bg-warning/10 text-warning';
+                        statusText = '试用期';
+                        break;
+                    case 'leave':
+                        statusClass = 'bg-info/10 text-info';
+                        statusText = '请假';
+                        break;
+                    case 'resigned':
+                        statusClass = 'bg-gray-100 text-gray-500';
+                        statusText = '已离职';
+                        break;
+                }
+                
+                row.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium">${employee.id}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 flex-shrink-0">
+                                <img class="h-8 w-8 rounded-full" src="https://picsum.photos/id/${50 + parseInt(employee.id.replace('EMP', ''))}/40/40" alt="${employee.name}">
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium">${employee.name}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${employee.position}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${employee.department}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${formatDate(employee.joinDate)}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                        <div class="flex space-x-2">
+                            <button class="text-primary hover:text-primary/80 view-employee" data-id="${employee.id}">
+                                <i class="fa fa-eye"></i> 查看
+                            </button>
+                            <button class="text-info hover:text-info/80 edit-employee" data-id="${employee.id}">
+                                <i class="fa fa-pencil"></i> 编辑
+                            </button>
+                            <button class="text-danger hover:text-danger/80 delete-employee" data-id="${employee.id}" data-name="${employee.name}">
+                                <i class="fa fa-trash"></i> 删除
+                            </button>
+                        </div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // 绑定员工操作按钮事件
+            bindEmployeeActionButtons();
+        }
+
+        // 更新员工统计数据
+        function updateEmployeeStatistics() {
+            // 总员工数
+            const total = employeesData.length;
+            document.getElementById('totalEmployees').textContent = total;
+            document.getElementById('totalEmployeesText').textContent = total;
+        }
+
+        // 绑定员工操作按钮事件
+        function bindEmployeeActionButtons() {
+            // 查看员工
+            document.querySelectorAll('.view-employee').forEach(button => {
+                button.addEventListener('click', function() {
+                    const employeeId = this.getAttribute('data-id');
+                    viewEmployee(employeeId);
+                });
+            });
+            
+            // 编辑员工
+            document.querySelectorAll('.edit-employee').forEach(button => {
+                button.addEventListener('click', function() {
+                    const employeeId = this.getAttribute('data-id');
+                    editEmployee(employeeId);
+                });
+            });
+            
+            // 删除员工
+            document.querySelectorAll('.delete-employee').forEach(button => {
+                button.addEventListener('click', function() {
+                    const employeeId = this.getAttribute('data-id');
+                    const employeeName = this.getAttribute('data-name');
+                    deleteEmployee(employeeId, employeeName);
+                });
+            });
+        }
+
+        // 初始化视图切换功能
+        function initViewSwitch() {
+            // 导航菜单切换
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetView = this.getAttribute('data-view');
+                    switchView(targetView);
+                    
+                    // 更新导航选中状态
+                    document.querySelectorAll('.nav-item').forEach(nav => {
+                        nav.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+            
+            // 其他视图切换按钮
+            document.querySelectorAll('[data-view]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetView = this.getAttribute('data-view');
+                    switchView(targetView);
+                    
+                    // 更新导航选中状态
+                    document.querySelectorAll('.nav-item').forEach(nav => {
+                        if (nav.getAttribute('data-view') === targetView) {
+                            nav.classList.add('active');
+                        } else {
+                            nav.classList.remove('active');
+                        }
+                    });
+                });
+            });
+        }
+
+        // 切换视图
+        function switchView(viewId) {
+            // 隐藏所有视图
+            document.querySelectorAll('.view-content').forEach(view => {
+                view.classList.add('hidden');
+            });
+            
+            // 显示目标视图
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.classList.remove('hidden');
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+                // 如果是添加员工视图，重置表单
+                if (viewId === 'employee-add') {
+                    resetEmployeeForm();
+                }
+            }
+        }
+
+        // 初始化表单提交处理
+        function initFormSubmissions() {
+            // 员工表单提交
+            document.getElementById('employeeForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleEmployeeForm();
+            });
+        }
+
+        // 处理员工表单
+        function handleEmployeeForm() {
+            const employeeId = document.getElementById('employeeId').value;
+            const isEditMode = !!employeeId;
+            
+            // 获取表单数据
+            const name = document.getElementById('emp-name').value;
+            const gender = document.getElementById('emp-gender').value;
+            const birth = document.getElementById('emp-birth').value;
+            const phone = document.getElementById('emp-phone').value;
+            const email = document.getElementById('emp-email').value;
+            const education = document.getElementById('emp-education').value;
+            const department = document.getElementById('emp-department').value;
+            const position = document.getElementById('emp-position').value;
+            const joinDate = document.getElementById('emp-join-date').value;
+            const salary = document.getElementById('emp-salary').value;
+            const status = document.getElementById('emp-status').value;
+            const address = document.getElementById('emp-address').value;
+            const emergencyContact = document.getElementById('emp-emergency-contact').value;
+            const emergencyPhone = document.getElementById('emp-emergency-phone').value;
+            const remark = document.getElementById('emp-remark').value;
+            
+            // 简单验证
+            if (!name || !gender || !phone || !education || !department || !position || !joinDate || !salary) {
+                showModal('提示', '请填写所有必填字段', ['确定']);
+                return;
+            }
+            
+            // 部门名称映射
+            const deptNames = {
+                'tech': '技术部',
+                'product': '产品部',
+                'operation': '运营部',
+                'sales': '销售部',
+                'finance': '财务部',
+                'hr': '人力资源部'
+            };
+            
+            if (isEditMode) {
+                // 编辑现有员工
+                const employeeIndex = employeesData.findIndex(emp => emp.id === employeeId);
+                if (employeeIndex !== -1) {
+                    employeesData[employeeIndex] = {
+                        ...employeesData[employeeIndex],
+                        name, gender, birth, phone, email, education,
+                        department: deptNames[department], position, joinDate, 
+                        salary: parseFloat(salary), status, address,
+                        emergencyContact, emergencyPhone, remark
+                    };
+                }
+                
+                showModal('成功', `员工 ${name} 信息已更新`, ['确定'], function() {
+                    switchView('employee-list');
+                    renderEmployeeList();
+                    updateEmployeeStatistics();
+                });
+            } else {
+                // 添加新员工
+                // 生成员工ID
+                const newId = 'EMP' + generateEmployeeId(employeesData.length + 1);
+                
+                // 创建新员工对象
+                const newEmployee = {
+                    id: newId,
+                    name, gender, birth, phone, email, education,
+                    department: deptNames[department], position, joinDate, 
+                    salary: parseFloat(salary), status, address,
+                    emergencyContact, emergencyPhone, remark
+                };
+                
+                // 添加到员工数据
+                employeesData.push(newEmployee);
+                
+                showModal('成功', `员工 ${name} 添加成功`, ['确定'], function() {
+                    switchView('employee-list');
+                    renderEmployeeList();
+                    updateEmployeeStatistics();
+                });
+            }
+        }
+
+        // 查看员工详情
+        function viewEmployee(employeeId) {
+            const employee = employeesData.find(emp => emp.id === employeeId);
+            if (!employee) return;
+            
+            // 切换到添加员工视图（复用表单）
+            switchView('employee-add');
+            
+            // 更新导航选中状态
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                if (nav.getAttribute('data-view') === 'employee-add') {
+                    nav.classList.add('active');
+                } else {
+                    nav.classList.remove('active');
+                }
+            });
+            
+            // 修改页面标题
+            document.getElementById('employeeFormTitle').textContent = `查看员工 - ${employee.name}`;
+            document.getElementById('employeeFormSubmit').innerHTML = '<i class="fa fa-edit mr-1"></i> 编辑员工';
+            document.getElementById('employeeFormSubmit').addEventListener('click', function editOnClick() {
+                // 切换到编辑模式
+                editEmployee(employeeId);
+                // 移除事件监听器，避免重复绑定
+                document.getElementById('employeeFormSubmit').removeEventListener('click', editOnClick);
+            });
+            
+            // 填充表单数据
+            populateEmployeeForm(employee, true);
+        }
+
+        // 编辑员工
+        function editEmployee(employeeId) {
+            const employee = employeesData.find(emp => emp.id === employeeId);
+            if (!employee) return;
+            
+            // 切换到添加员工视图（复用表单）
+            switchView('employee-add');
+            
+            // 更新导航选中状态
+            document.querySelectorAll('.nav-item').forEach(nav => {
+                if (nav.getAttribute('data-view') === 'employee-add') {
+                    nav.classList.add('active');
+                } else {
+                    nav.classList.remove('active');
+                }
+            });
+            
+            // 修改页面标题
+            document.getElementById('employeeFormTitle').textContent = `编辑员工 - ${employee.name}`;
+            document.getElementById('employeeFormSubmit').innerHTML = '<i class="fa fa-save mr-1"></i> 保存修改';
+            
+            // 填充表单数据
+            populateEmployeeForm(employee, false);
+        }
+
+        // 填充员工表单数据
+        function populateEmployeeForm(employee, isViewMode) {
+            document.getElementById('employeeId').value = employee.id;
+            document.getElementById('emp-id').value = employee.id;
+            document.getElementById('emp-name').value = employee.name;
+            document.getElementById('emp-gender').value = employee.gender;
+            document.getElementById('emp-birth').value = employee.birth;
+            document.getElementById('emp-phone').value = employee.phone;
+            document.getElementById('emp-email').value = employee.email;
+            document.getElementById('emp-education').value = employee.education;
+            
+            // 部门值映射
+            const deptValues = {
+                '技术部': 'tech',
+                '产品部': 'product',
+                '运营部': 'operation',
+                '销售部': 'sales',
+                '财务部': 'finance',
+                '人力资源部': 'hr'
+            };
+            document.getElementById('emp-department').value = deptValues[employee.department] || '';
+            
+            document.getElementById('emp-position').value = employee.position;
+            document.getElementById('emp-join-date').value = employee.joinDate;
+            document.getElementById('emp-salary').value = employee.salary;
+            document.getElementById('emp-status').value = employee.status;
+            document.getElementById('emp-address').value = employee.address;
+            document.getElementById('emp-emergency-contact').value = employee.emergencyContact;
+            document.getElementById('emp-emergency-phone').value = employee.emergencyPhone;
+            document.getElementById('emp-remark').value = employee.remark;
+            
+            // 如果是查看模式，禁用所有输入
+            const inputs = document.querySelectorAll('#employeeForm input, #employeeForm select, #employeeForm textarea');
+            inputs.forEach(input => {
+                input.disabled = isViewMode;
+            });
+        }
+
+        // 重置员工表单
+        function resetEmployeeForm() {
+            document.getElementById('employeeForm').reset();
+            document.getElementById('employeeId').value = '';
+            document.getElementById('emp-id').value = '自动生成';
+            document.getElementById('employeeFormTitle').textContent = '添加员工';
+            document.getElementById('employeeFormSubmit').innerHTML = '<i class="fa fa-check mr-1"></i> 保存员工信息';
+            
+            // 启用所有输入
+            const inputs = document.querySelectorAll('#employeeForm input, #employeeForm select, #employeeForm textarea');
+            inputs.forEach(input => {
+                if (input.id !== 'emp-id') {
+                    input.disabled = false;
+                }
+            });
+        }
+
+        // 删除员工
+        function deleteEmployee(employeeId, employeeName) {
+            showModal('确认删除', `您确定要删除员工 <strong>${employeeName}</strong> 吗？<br>此操作不可撤销。`, ['取消', '确定'], function(confirmed) {
+                if (confirmed) {
+                    // 从数据中删除员工
+                    const employeeIndex = employeesData.findIndex(emp => emp.id === employeeId);
+                    if (employeeIndex !== -1) {
+                        employeesData.splice(employeeIndex, 1);
+                    }
+                    
+                    // 重新渲染员工列表
+                    renderEmployeeList();
+                    updateEmployeeStatistics();
+                    showModal('成功', `员工 ${employeeName} 已删除`, ['确定']);
+                }
+            });
+        }
+
+        // 初始化其他交互功能
+        function initOtherInteractions() {
+            // 刷新按钮
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                // 显示加载动画
+                this.innerHTML = '<i class="fa fa-spinner fa-spin text-gray-600"></i>';
+                
+                // 模拟刷新数据
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fa fa-refresh text-gray-600"></i>';
+                    showModal('提示', '数据已刷新', ['确定']);
+                }, 800);
+            });
+            
+            // 员工搜索功能
+            document.getElementById('employeeSearch').addEventListener('input', function() {
+                const searchTerm = this.value.toLowerCase().trim();
+                
+                if (searchTerm === '') {
+                    // 重新渲染完整列表
+                    renderEmployeeList();
+                    return;
+                }
+                
+                // 过滤员工
+                const filteredEmployees = employeesData.filter(emp => 
+                    emp.id.toLowerCase().includes(searchTerm) || 
+                    emp.name.toLowerCase().includes(searchTerm) ||
+                    emp.department.toLowerCase().includes(searchTerm) ||
+                    emp.position.toLowerCase().includes(searchTerm)
+                );
+                
+                // 渲染过滤后的列表
+                const tableBody = document.getElementById('employeeTableBody');
+                tableBody.innerHTML = '';
+                
+                if (filteredEmployees.length === 0) {
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="px-4 py-8 text-center text-gray-500">
+                                <i class="fa fa-search-minus mr-2"></i> 没有找到匹配的员工
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+                
+                filteredEmployees.forEach(employee => {
+                    // 与renderEmployeeList相同的渲染逻辑
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 transition-colors';
+                    
+                    // 状态标签样式
+                    let statusClass, statusText;
+                    switch(employee.status) {
+                        case 'active':
+                            statusClass = 'bg-success/10 text-success';
+                            statusText = '在职';
+                            break;
+                        case 'probation':
+                            statusClass = 'bg-warning/10 text-warning';
+                            statusText = '试用期';
+                            break;
+                        case 'leave':
+                            statusClass = 'bg-info/10 text-info';
+                            statusText = '请假';
+                            break;
+                        case 'resigned':
+                            statusClass = 'bg-gray-100 text-gray-500';
+                            statusText = '已离职';
+                            break;
+                    }
+                    
+                    row.innerHTML = `
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium">${employee.id}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div class="h-8 w-8 flex-shrink-0">
+                                    <img class="h-8 w-8 rounded-full" src="https://picsum.photos/id/${50 + parseInt(employee.id.replace('EMP', ''))}/40/40" alt="${employee.name}">
+                                </div>
+                                <div class="ml-3">
+                                    <div class="text-sm font-medium">${employee.name}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm">${employee.position}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm">${employee.department}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <div class="text-sm">${formatDate(employee.joinDate)}</div>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${statusText}
+                            </span>
+                        </td>
+                        <td class="px-4 py-4 whitespace-nowrap text-sm">
+                            <div class="flex space-x-2">
+                                <button class="text-primary hover:text-primary/80 view-employee" data-id="${employee.id}">
+                                    <i class="fa fa-eye"></i> 查看
+                                </button>
+                                <button class="text-info hover:text-info/80 edit-employee" data-id="${employee.id}">
+                                    <i class="fa fa-pencil"></i> 编辑
+                                </button>
+                                <button class="text-danger hover:text-danger/80 delete-employee" data-id="${employee.id}" data-name="${employee.name}">
+                                    <i class="fa fa-trash"></i> 删除
+                                </button>
+                            </div>
+                        </td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+                
+                // 重新绑定事件
+                bindEmployeeActionButtons();
+            });
+        }
+
+        // 显示模态框
+        function showModal(title, content, buttons, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            
+            const modalFooter = document.getElementById('modalFooter');
+            modalFooter.innerHTML = '';
+            
+            // 添加按钮
+            buttons.forEach((buttonText, index) => {
+                const button = document.createElement('button');
+                button.className = index === buttons.length - 1 ? 'btn-primary' : 'btn-secondary';
+                button.textContent = buttonText;
+                
+                button.addEventListener('click', function() {
+                    document.getElementById('modal').classList.add('hidden');
+                    if (callback) {
+                        // 最后一个按钮视为确认按钮
+                        callback(index === buttons.length - 1);
+                    }
+                });
+                
+                modalFooter.appendChild(button);
+            });
+            
+            // 显示模态框
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        // 关闭模态框
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('modal').classList.add('hidden');
+        });
+
+        // 格式化日期
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+    </script>
+</body>
+</html>

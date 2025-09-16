@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>考勤管理 - 企业HR管理系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // Tailwind配置
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#F5222D',
+                        info: '#1890FF',
+                        dark: '#1D2129',
+                        light: '#F2F3F5'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+                transition: all 0.3s ease;
+            }
+            .card-shadow:hover {
+                box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+            }
+            .btn-primary {
+                @apply bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-all duration-300 focus:ring-2 focus:ring-primary/50 focus:outline-none;
+            }
+            .btn-secondary {
+                @apply bg-white border border-gray-300 text-dark px-4 py-2 rounded-lg hover:bg-gray-50 transition-all duration-300 focus:ring-2 focus:ring-gray-200 focus:outline-none;
+            }
+            .input-field {
+                @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all duration-300;
+            }
+            .nav-item {
+                @apply flex items-center gap-3 px-4 py-3 text-gray-600 hover:bg-primary/5 rounded-lg transition-all duration-200 cursor-pointer;
+            }
+            .nav-item.active {
+                @apply bg-primary/10 text-primary font-medium;
+            }
+            .fade-in {
+                animation: fadeIn 0.3s ease-in-out;
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; transform: translateY(10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+            .punch-status {
+                @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter text-dark min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="text-primary text-2xl">
+                    <i class="fa fa-calendar-check-o"></i>
+                </div>
+                <h1 class="text-xl font-semibold">企业HR管理系统</h1>
+                <span class="hidden md:inline-block text-gray-400 text-sm ml-3">|</span>
+                <h2 class="text-gray-600 hidden md:inline-block">考勤管理模块</h2>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button id="refreshBtn" class="p-2 rounded-full hover:bg-gray-100 transition-colors">
+                    <i class="fa fa-refresh text-gray-600"></i>
+                </button>
+                <div class="relative">
+                    <button id="userMenuBtn" class="flex items-center gap-2 p-1 rounded-full hover:bg-gray-100 transition-colors">
+                        <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-primary/20">
+                        <span class="hidden md:inline-block text-sm font-medium">管理员</span>
+                        <i class="fa fa-angle-down text-gray-500 text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主要内容区 -->
+    <main class="flex-1 container mx-auto px-4 py-6">
+        <div class="flex flex-col lg:flex-row gap-6">
+            <!-- 左侧导航 -->
+            <aside class="lg:w-64 bg-white rounded-xl p-4 card-shadow">
+                <div class="mb-6">
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">考勤管理</h3>
+                    <nav class="space-y-1">
+                        <div class="nav-item active" data-view="attendance-records">
+                            <i class="fa fa-list-alt w-5 text-center"></i>
+                            <span>考勤记录</span>
+                        </div>
+                        <div class="nav-item" data-view="attendance-statistics">
+                            <i class="fa fa-bar-chart w-5 text-center"></i>
+                            <span>考勤统计</span>
+                        </div>
+                        <div class="nav-item" data-view="attendance-exceptions">
+                            <i class="fa fa-exclamation-triangle w-5 text-center"></i>
+                            <span>异常处理</span>
+                        </div>
+                    </nav>
+                </div>
+                
+                <div>
+                    <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 px-4">本月概览</h3>
+                    <div class="space-y-4 px-2">
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">出勤率</div>
+                            <div class="text-2xl font-bold text-success">96.8%</div>
+                        </div>
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">迟到次数</div>
+                            <div class="text-2xl font-bold text-warning">24</div>
+                        </div>
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">请假天数</div>
+                            <div class="text-2xl font-bold text-info">12</div>
+                        </div>
+                        <div class="bg-light rounded-lg p-3">
+                            <div class="text-sm text-gray-500 mb-1">旷工次数</div>
+                            <div class="text-2xl font-bold text-danger">3</div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+            
+            <!-- 右侧内容视图 -->
+            <div class="flex-1 space-y-6">
+                <!-- 考勤记录视图 -->
+                <div id="attendance-records" class="view-content fade-in">
+                    <div class="bg-white rounded-xl p-5 card-shadow">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <h2 class="text-xl font-semibold">考勤记录</h2>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="flex gap-2">
+                                    <div class="relative">
+                                        <input type="date" id="attendanceStartDate" class="input-field w-full">
+                                    </div>
+                                    <span class="flex items-center text-gray-500">至</span>
+                                    <div class="relative">
+                                        <input type="date" id="attendanceEndDate" class="input-field w-full">
+                                    </div>
+                                </div>
+                                <div class="relative">
+                                    <select id="attendanceDepartment" class="input-field">
+                                        <option value="">所有部门</option>
+                                        <option value="tech">技术部</option>
+                                        <option value="product">产品部</option>
+                                        <option value="operation">运营部</option>
+                                        <option value="sales">销售部</option>
+                                        <option value="finance">财务部</option>
+                                        <option value="hr">人力资源部</option>
+                                    </select>
+                                </div>
+                                <button class="btn-primary" id="filterAttendance">
+                                    <i class="fa fa-filter mr-1"></i> 筛选
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
+                                            日期
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            员工信息
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            部门
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            签到时间
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            签退时间
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            工作时长
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            状态
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
+                                            操作
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="attendanceTableBody">
+                                    <!-- 考勤数据将通过JS动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-6">
+                            <div class="text-sm text-gray-500">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium" id="totalAttendanceText">0</span> 条
+                            </div>
+                            <div class="flex space-x-1">
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
+                                    <i class="fa fa-angle-left"></i>
+                                </button>
+                                <button class="px-3 py-1 border border-primary bg-primary text-white rounded">1</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50">
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 考勤统计视图 -->
+                <div id="attendance-statistics" class="view-content hidden fade-in">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2">
+                            <div class="bg-white rounded-xl p-5 card-shadow h-full">
+                                <h2 class="text-xl font-semibold mb-6">部门考勤统计</h2>
+                                <div class="h-80">
+                                    <canvas id="departmentAttendanceChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <div class="bg-white rounded-xl p-5 card-shadow h-full">
+                                <h2 class="text-xl font-semibold mb-6">考勤类型分布</h2>
+                                <div class="h-80">
+                                    <canvas id="attendanceTypeChart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="lg:col-span-3">
+                            <div class="bg-white rounded-xl p-5 card-shadow">
+                                <div class="flex items-center justify-between mb-6">
+                                    <h2 class="text-xl font-semibold">员工考勤排行</h2>
+                                    <div class="flex gap-2">
+                                        <select id="rankingType" class="input-field w-40">
+                                            <option value="ontime">全勤率</option>
+                                            <option value="late">迟到次数</option>
+                                            <option value="workhours">工作时长</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="overflow-x-auto">
+                                    <table class="min-w-full divide-y divide-gray-200">
+                                        <thead>
+                                            <tr>
+                                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
+                                                    排名
+                                                </th>
+                                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    员工信息
+                                                </th>
+                                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    部门
+                                                </th>
+                                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    全勤率
+                                                </th>
+                                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                                    迟到次数
+                                                </th>
+                                                <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
+                                                    平均每日工时
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="bg-white divide-y divide-gray-200" id="rankingTableBody">
+                                            <!-- 排行数据将通过JS动态生成 -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 异常处理视图 -->
+                <div id="attendance-exceptions" class="view-content hidden fade-in">
+                    <div class="bg-white rounded-xl p-5 card-shadow">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <h2 class="text-xl font-semibold">考勤异常处理</h2>
+                            <div class="flex flex-wrap gap-3">
+                                <div class="relative">
+                                    <select id="exceptionType" class="input-field">
+                                        <option value="">所有异常类型</option>
+                                        <option value="late">迟到</option>
+                                        <option value="early">早退</option>
+                                        <option value="absent">旷工</option>
+                                        <option value="no-signin">未签到</option>
+                                        <option value="no-signout">未签退</option>
+                                    </select>
+                                </div>
+                                <div class="relative">
+                                    <select id="exceptionStatus" class="input-field">
+                                        <option value="">所有状态</option>
+                                        <option value="pending">待处理</option>
+                                        <option value="processed">已处理</option>
+                                    </select>
+                                </div>
+                                <button class="btn-primary" id="filterExceptions">
+                                    <i class="fa fa-filter mr-1"></i> 筛选
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tl-lg">
+                                            日期
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            员工信息
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            异常类型
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            详情
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            状态
+                                        </th>
+                                        <th class="px-4 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider rounded-tr-lg">
+                                            操作
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200" id="exceptionsTableBody">
+                                    <!-- 异常数据将通过JS动态生成 -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="flex items-center justify-between mt-6">
+                            <div class="text-sm text-gray-500">
+                                显示 <span class="font-medium">1</span> 到 <span class="font-medium">10</span> 条，共 <span class="font-medium" id="totalExceptionsText">0</span> 条
+                            </div>
+                            <div class="flex space-x-1">
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50" disabled>
+                                    <i class="fa fa-angle-left"></i>
+                                </button>
+                                <button class="px-3 py-1 border border-primary bg-primary text-white rounded">1</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50">2</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-700 hover:bg-gray-50">3</button>
+                                <button class="px-3 py-1 border border-gray-300 rounded bg-white text-gray-500 hover:bg-gray-50">
+                                    <i class="fa fa-angle-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-4 mt-8">
+        <div class="container mx-auto px-4 text-center text-sm text-gray-500">
+            <p>© 2024 企业HR管理系统 - 考勤管理模块</p>
+        </div>
+    </footer>
+
+    <!-- 异常处理模态框 -->
+    <div id="exceptionModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold" id="exceptionModalTitle">处理考勤异常</h3>
+                <button id="closeExceptionModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <form id="exceptionForm" class="p-5 space-y-4">
+                <input type="hidden" id="exceptionId">
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">员工信息</label>
+                    <div class="bg-light p-3 rounded-lg" id="exceptionEmployeeInfo">
+                        张三 (EMP0001) - 技术部
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">异常日期</label>
+                    <div class="bg-light p-3 rounded-lg" id="exceptionDate">
+                        2024-05-15
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">异常类型</label>
+                    <div class="bg-light p-3 rounded-lg" id="exceptionTypeDisplay">
+                        迟到
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">异常详情</label>
+                    <div class="bg-light p-3 rounded-lg" id="exceptionDetails">
+                        签到时间晚于规定时间30分钟
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="exceptionHandling" class="block text-sm font-medium text-gray-700 mb-1">处理方式 <span class="text-danger">*</span></label>
+                    <select id="exceptionHandling" class="input-field" required>
+                        <option value="">请选择处理方式</option>
+                        <option value="warning">警告</option>
+                        <option value="deduction">罚款</option>
+                        <option value="ignore">忽略</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label for="exceptionRemark" class="block text-sm font-medium text-gray-700 mb-1">处理备注</label>
+                    <textarea id="exceptionRemark" rows="3" class="input-field" placeholder="请输入处理备注"></textarea>
+                </div>
+                
+                <div class="flex justify-end gap-3 pt-3 border-t border-gray-100">
+                    <button type="button" class="btn-secondary" id="cancelException">取消</button>
+                    <button type="submit" class="btn-primary">确认处理</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 模态框 - 提示信息 -->
+    <div id="modal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden fade-in">
+        <div class="bg-white rounded-xl max-w-md w-full mx-4 overflow-hidden">
+            <div class="p-5 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold" id="modalTitle">提示信息</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times"></i>
+                </button>
+            </div>
+            <div class="p-5" id="modalContent">
+                这是一个提示框
+            </div>
+            <div class="p-4 bg-gray-50 flex justify-end gap-3" id="modalFooter">
+                <button id="modalCancel" class="btn-secondary">取消</button>
+                <button id="modalConfirm" class="btn-primary">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    <script>
+        // 模拟数据 - 考勤记录
+        const attendanceData = [
+            { id: 1, date: '2024-05-15', employeeId: 'EMP0001', employeeName: '张三', department: '技术部',
+              signInTime: '09:05:23', signOutTime: '18:15:30', workHours: 9.17, status: 'normal' },
+              
+            { id: 2, date: '2024-05-15', employeeId: 'EMP0002', employeeName: '李四', department: '产品部',
+              signInTime: '09:20:10', signOutTime: '18:30:45', workHours: 9.17, status: 'late' },
+              
+            { id: 3, date: '2024-05-15', employeeId: 'EMP0003', employeeName: '王五', department: '销售部',
+              signInTime: '08:50:05', signOutTime: '17:45:12', workHours: 8.92, status: 'early' },
+              
+            { id: 4, date: '2024-05-15', employeeId: 'EMP0004', employeeName: '赵六', department: '财务部',
+              signInTime: '09:02:30', signOutTime: '18:05:15', workHours: 9.05, status: 'normal' },
+              
+            { id: 5, date: '2024-05-15', employeeId: 'EMP0005', employeeName: '孙七', department: '技术部',
+              signInTime: '', signOutTime: '', workHours: 0, status: 'absent' },
+              
+            { id: 6, date: '2024-05-15', employeeId: 'EMP0006', employeeName: '周八', department: '人力资源部',
+              signInTime: '08:45:18', signOutTime: '', workHours: 0, status: 'no-signout' },
+              
+            { id: 7, date: '2024-05-14', employeeId: 'EMP0001', employeeName: '张三', department: '技术部',
+              signInTime: '09:10:55', signOutTime: '19:30:22', workHours: 10.33, status: 'late' },
+              
+            { id: 8, date: '2024-05-14', employeeId: 'EMP0002', employeeName: '李四', department: '产品部',
+              signInTime: '08:55:30', signOutTime: '18:10:15', workHours: 9.25, status: 'normal' },
+              
+            { id: 9, date: '2024-05-14', employeeId: 'EMP0003', employeeName: '王五', department: '销售部',
+              signInTime: '', signOutTime: '', workHours: 0, status: 'absent' },
+              
+            { id: 10, date: '2024-05-14', employeeId: 'EMP0004', employeeName: '赵六', department: '财务部',
+              signInTime: '09:01:45', signOutTime: '18:02:30', workHours: 9.01, status: 'normal' }
+        ];
+
+        // 模拟数据 - 考勤异常
+        const exceptionsData = [
+            { id: 1, date: '2024-05-15', employeeId: 'EMP0002', employeeName: '李四', department: '产品部',
+              type: 'late', details: '签到时间晚于规定时间20分钟', status: 'pending' },
+              
+            { id: 2, date: '2024-05-15', employeeId: 'EMP0003', employeeName: '王五', department: '销售部',
+              type: 'early', details: '签退时间早于规定时间15分钟', status: 'pending' },
+              
+            { id: 3, date: '2024-05-15', employeeId: 'EMP0005', employeeName: '孙七', department: '技术部',
+              type: 'absent', details: '未签到且未请假', status: 'pending' },
+              
+            { id: 4, date: '2024-05-15', employeeId: 'EMP0006', employeeName: '周八', department: '人力资源部',
+              type: 'no-signout', details: '已签到但未签退', status: 'pending' },
+              
+            { id: 5, date: '2024-05-14', employeeId: 'EMP0001', employeeName: '张三', department: '技术部',
+              type: 'late', details: '签到时间晚于规定时间10分钟', status: 'processed' },
+              
+            { id: 6, date: '2024-05-14', employeeId: 'EMP0003', employeeName: '王五', department: '销售部',
+              type: 'absent', details: '未签到且未请假', status: 'processed' }
+        ];
+
+        // 模拟数据 - 员工考勤统计
+        const employeeStatsData = [
+            { employeeId: 'EMP0001', employeeName: '张三', department: '技术部', ontimeRate: 95, lateCount: 3, avgWorkHours: 9.2 },
+            { employeeId: 'EMP0002', employeeName: '李四', department: '产品部', ontimeRate: 88, lateCount: 5, avgWorkHours: 8.7 },
+            { employeeId: 'EMP0003', employeeName: '王五', department: '销售部', ontimeRate: 75, lateCount: 8, avgWorkHours: 7.5 },
+            { employeeId: 'EMP0004', employeeName: '赵六', department: '财务部', ontimeRate: 98, lateCount: 1, avgWorkHours: 8.5 },
+            { employeeId: 'EMP0005', employeeName: '孙七', department: '技术部', ontimeRate: 90, lateCount: 4, avgWorkHours: 9.5 },
+            { employeeId: 'EMP0006', employeeName: '周八', department: '人力资源部', ontimeRate: 92, lateCount: 3, avgWorkHours: 8.2 }
+        ];
+
+        // DOM 元素加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 设置默认日期范围（最近7天）
+            const today = new Date();
+            const lastWeek = new Date(today);
+            lastWeek.setDate(today.getDate() - 7);
+            
+            document.getElementById('attendanceStartDate').value = formatDateForInput(lastWeek);
+            document.getElementById('attendanceEndDate').value = formatDateForInput(today);
+            
+            // 初始化考勤记录
+            renderAttendanceRecords();
+            
+            // 初始化异常记录
+            renderExceptions();
+            
+            // 初始化员工考勤排行
+            renderRanking();
+            
+            // 初始化图表
+            initCharts();
+            
+            // 更新统计数据
+            updateStatistics();
+            
+            // 视图切换功能
+            initViewSwitch();
+            
+            // 表单提交处理
+            initFormSubmissions();
+            
+            // 筛选功能
+            initFilters();
+            
+            // 其他交互功能初始化
+            initOtherInteractions();
+        });
+
+        // 渲染考勤记录
+        function renderAttendanceRecords() {
+            const tableBody = document.getElementById('attendanceTableBody');
+            tableBody.innerHTML = '';
+            
+            attendanceData.forEach(record => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                // 状态标签样式
+                let statusClass, statusText;
+                switch(record.status) {
+                    case 'normal':
+                        statusClass = 'bg-success/10 text-success';
+                        statusText = '正常';
+                        break;
+                    case 'late':
+                        statusClass = 'bg-warning/10 text-warning';
+                        statusText = '迟到';
+                        break;
+                    case 'early':
+                        statusClass = 'bg-warning/10 text-warning';
+                        statusText = '早退';
+                        break;
+                    case 'absent':
+                        statusClass = 'bg-danger/10 text-danger';
+                        statusText = '旷工';
+                        break;
+                    case 'no-signin':
+                        statusClass = 'bg-danger/10 text-danger';
+                        statusText = '未签到';
+                        break;
+                    case 'no-signout':
+                        statusClass = 'bg-warning/10 text-warning';
+                        statusText = '未签退';
+                        break;
+                }
+                
+                // 格式化时间显示
+                const signInDisplay = record.signInTime || '-';
+                const signOutDisplay = record.signOutTime || '-';
+                const workHoursDisplay = record.workHours > 0 ? record.workHours.toFixed(2) + ' 小时' : '-';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${formatDate(record.date)}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 flex-shrink-0">
+                                <img class="h-8 w-8 rounded-full" src="https://picsum.photos/id/${50 + parseInt(record.employeeId.replace('EMP', ''))}/40/40" alt="${record.employeeName}">
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium">${record.employeeName}</div>
+                                <div class="text-xs text-gray-500">${record.employeeId}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${record.department}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${signInDisplay}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${signOutDisplay}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${workHoursDisplay}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="punch-status ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                        <button class="text-primary hover:text-primary/80 view-attendance" data-id="${record.id}">
+                            <i class="fa fa-eye"></i> 查看
+                        </button>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // 更新总数
+            document.getElementById('totalAttendanceText').textContent = attendanceData.length;
+            
+            // 绑定考勤记录操作按钮事件
+            bindAttendanceActionButtons();
+        }
+
+        // 渲染异常记录
+        function renderExceptions() {
+            const tableBody = document.getElementById('exceptionsTableBody');
+            tableBody.innerHTML = '';
+            
+            exceptionsData.forEach(exception => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                // 异常类型显示
+                let typeClass, typeText;
+                switch(exception.type) {
+                    case 'late':
+                        typeClass = 'bg-warning/10 text-warning';
+                        typeText = '迟到';
+                        break;
+                    case 'early':
+                        typeClass = 'bg-warning/10 text-warning';
+                        typeText = '早退';
+                        break;
+                    case 'absent':
+                        typeClass = 'bg-danger/10 text-danger';
+                        typeText = '旷工';
+                        break;
+                    case 'no-signin':
+                        typeClass = 'bg-danger/10 text-danger';
+                        typeText = '未签到';
+                        break;
+                    case 'no-signout':
+                        typeClass = 'bg-warning/10 text-warning';
+                        typeText = '未签退';
+                        break;
+                }
+                
+                // 处理状态显示
+                let statusClass, statusText;
+                switch(exception.status) {
+                    case 'pending':
+                        statusClass = 'bg-warning/10 text-warning';
+                        statusText = '待处理';
+                        break;
+                    case 'processed':
+                        statusClass = 'bg-success/10 text-success';
+                        statusText = '已处理';
+                        break;
+                }
+                
+                row.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${formatDate(exception.date)}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 flex-shrink-0">
+                                <img class="h-8 w-8 rounded-full" src="https://picsum.photos/id/${50 + parseInt(exception.employeeId.replace('EMP', ''))}/40/40" alt="${exception.employeeName}">
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium">${exception.employeeName}</div>
+                                <div class="text-xs text-gray-500">${exception.employeeId} - ${exception.department}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="punch-status ${typeClass}">
+                            ${typeText}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${exception.details}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <span class="punch-status ${statusClass}">
+                            ${statusText}
+                        </span>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap text-sm">
+                        ${exception.status === 'pending' ? 
+                            `<button class="text-primary hover:text-primary/80 handle-exception" data-id="${exception.id}">
+                                <i class="fa fa-cog"></i> 处理
+                            </button>` : 
+                            `<button class="text-info hover:text-info/80 view-exception" data-id="${exception.id}">
+                                <i class="fa fa-eye"></i> 查看
+                            </button>`
+                        }
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            // 更新总数
+            document.getElementById('totalExceptionsText').textContent = exceptionsData.length;
+            
+            // 绑定异常记录操作按钮事件
+            bindExceptionActionButtons();
+        }
+
+        // 渲染员工考勤排行
+        function renderRanking() {
+            const tableBody = document.getElementById('rankingTableBody');
+            tableBody.innerHTML = '';
+            
+            // 默认按全勤率排序
+            const sortedData = [...employeeStatsData].sort((a, b) => b.ontimeRate - a.ontimeRate);
+            
+            sortedData.forEach((stat, index) => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition-colors';
+                
+                // 排名样式
+                let rankClass = '';
+                if (index === 0) rankClass = 'bg-yellow-100 text-yellow-600';
+                else if (index === 1) rankClass = 'bg-gray-100 text-gray-600';
+                else if (index === 2) rankClass = 'bg-amber-100 text-amber-600';
+                
+                row.innerHTML = `
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold ${rankClass}">
+                            ${index + 1}
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                            <div class="h-8 w-8 flex-shrink-0">
+                                <img class="h-8 w-8 rounded-full" src="https://picsum.photos/id/${50 + parseInt(stat.employeeId.replace('EMP', ''))}/40/40" alt="${stat.employeeName}">
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium">${stat.employeeName}</div>
+                                <div class="text-xs text-gray-500">${stat.employeeId}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${stat.department}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium">${stat.ontimeRate}%</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm ${stat.lateCount > 5 ? 'text-warning' : ''}">${stat.lateCount}</div>
+                    </td>
+                    <td class="px-4 py-4 whitespace-nowrap">
+                        <div class="text-sm">${stat.avgWorkHours.toFixed(1)} 小时</div>
+                    </td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+        }
+
+        // 初始化图表
+        function initCharts() {
+            // 部门考勤统计图表
+            const deptCtx = document.getElementById('departmentAttendanceChart').getContext('2d');
+            new Chart(deptCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['技术部', '产品部', '销售部', '财务部', '人力资源部', '运营部'],
+                    datasets: [
+                        {
+                            label: '出勤率(%)',
+                            data: [97, 95, 88, 99, 96, 92],
+                            backgroundColor: 'rgba(82, 196, 26, 0.6)',
+                            borderColor: 'rgba(82, 196, 26, 1)',
+                            borderWidth: 1
+                        },
+                        {
+                            label: '平均每日工时(小时)',
+                            data: [9.2, 8.7, 7.5, 8.5, 8.2, 8.8],
+                            backgroundColor: 'rgba(22, 93, 255, 0.6)',
+                            borderColor: 'rgba(22, 93, 255, 1)',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+            
+            // 考勤类型分布图表
+            const typeCtx = document.getElementById('attendanceTypeChart').getContext('2d');
+            new Chart(typeCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['正常', '迟到', '早退', '旷工', '未签到', '未签退'],
+                    datasets: [{
+                        data: [78, 10, 5, 2, 3, 2],
+                        backgroundColor: [
+                            'rgba(82, 196, 26, 0.7)',
+                            'rgba(250, 173, 20, 0.7)',
+                            'rgba(250, 173, 20, 0.7)',
+                            'rgba(245, 34, 45, 0.7)',
+                            'rgba(245, 34, 45, 0.7)',
+                            'rgba(250, 173, 20, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(82, 196, 26, 1)',
+                            'rgba(250, 173, 20, 1)',
+                            'rgba(250, 173, 20, 1)',
+                            'rgba(245, 34, 45, 1)',
+                            'rgba(245, 34, 45, 1)',
+                            'rgba(250, 173, 20, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 更新统计数据
+        function updateStatistics() {
+            // 这里可以根据实际数据更新左侧统计面板
+        }
+
+        // 绑定考勤记录操作按钮事件
+        function bindAttendanceActionButtons() {
+            // 查看考勤详情
+            document.querySelectorAll('.view-attendance').forEach(button => {
+                button.addEventListener('click', function() {
+                    const recordId = parseInt(this.getAttribute('data-id'));
+                    viewAttendanceRecord(recordId);
+                });
+            });
+        }
+
+        // 绑定异常记录操作按钮事件
+        function bindExceptionActionButtons() {
+            // 处理异常
+            document.querySelectorAll('.handle-exception').forEach(button => {
+                button.addEventListener('click', function() {
+                    const exceptionId = parseInt(this.getAttribute('data-id'));
+                    handleException(exceptionId);
+                });
+            });
+            
+            // 查看异常详情
+            document.querySelectorAll('.view-exception').forEach(button => {
+                button.addEventListener('click', function() {
+                    const exceptionId = parseInt(this.getAttribute('data-id'));
+                    viewException(exceptionId);
+                });
+            });
+        }
+
+        // 初始化视图切换功能
+        function initViewSwitch() {
+            // 导航菜单切换
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const targetView = this.getAttribute('data-view');
+                    switchView(targetView);
+                    
+                    // 更新导航选中状态
+                    document.querySelectorAll('.nav-item').forEach(nav => {
+                        nav.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                });
+            });
+        }
+
+        // 切换视图
+        function switchView(viewId) {
+            // 隐藏所有视图
+            document.querySelectorAll('.view-content').forEach(view => {
+                view.classList.add('hidden');
+            });
+            
+            // 显示目标视图
+            const targetView = document.getElementById(viewId);
+            if (targetView) {
+                targetView.classList.remove('hidden');
+                // 滚动到顶部
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
+
+        // 初始化表单提交处理
+        function initFormSubmissions() {
+            // 异常处理表单提交
+            document.getElementById('exceptionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                handleExceptionForm();
+            });
+            
+            // 关闭异常处理模态框
+            document.getElementById('closeExceptionModal').addEventListener('click', function() {
+                document.getElementById('exceptionModal').classList.add('hidden');
+            });
+            
+            // 取消异常处理
+            document.getElementById('cancelException').addEventListener('click', function() {
+                document.getElementById('exceptionModal').classList.add('hidden');
+            });
+            
+            // 排名类型切换
+            document.getElementById('rankingType').addEventListener('change', function() {
+                renderRanking();
+            });
+        }
+
+        // 初始化筛选功能
+        function initFilters() {
+            // 考勤记录筛选
+            document.getElementById('filterAttendance').addEventListener('click', function() {
+                const startDate = document.getElementById('attendanceStartDate').value;
+                const endDate = document.getElementById('attendanceEndDate').value;
+                const department = document.getElementById('attendanceDepartment').value;
+                
+                // 这里可以实现实际的筛选逻辑
+                showModal('提示', `已筛选 ${startDate || '开始日期'} 至 ${endDate || '结束日期'} ${department ? '的' + getDepartmentName(department) : ''} 考勤记录`, ['确定']);
+            });
+            
+            // 异常记录筛选
+            document.getElementById('filterExceptions').addEventListener('click', function() {
+                const type = document.getElementById('exceptionType').value;
+                const status = document.getElementById('exceptionStatus').value;
+                
+                // 这里可以实现实际的筛选逻辑
+                let filterText = [];
+                if (type) filterText.push(getExceptionTypeName(type) + '异常');
+                if (status) filterText.push(status === 'pending' ? '待处理' : '已处理');
+                
+                showModal('提示', `已筛选 ${filterText.length > 0 ? filterText.join('、') : '所有'} 的考勤异常记录`, ['确定']);
+            });
+        }
+
+        // 查看考勤记录详情
+        function viewAttendanceRecord(recordId) {
+            const record = attendanceData.find(r => r.id === recordId);
+            if (!record) return;
+            
+            // 构建详情内容
+            let statusText;
+            switch(record.status) {
+                case 'normal': statusText = '正常'; break;
+                case 'late': statusText = '迟到'; break;
+                case 'early': statusText = '早退'; break;
+                case 'absent': statusText = '旷工'; break;
+                case 'no-signin': statusText = '未签到'; break;
+                case 'no-signout': statusText = '未签退'; break;
+            }
+            
+            const signInDisplay = record.signInTime || '-';
+            const signOutDisplay = record.signOutTime || '-';
+            const workHoursDisplay = record.workHours > 0 ? record.workHours.toFixed(2) + ' 小时' : '-';
+            
+            const content = `
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">员工姓名：</span>
+                        <span class="font-medium">${record.employeeName} (${record.employeeId})</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">所属部门：</span>
+                        <span>${record.department}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">考勤日期：</span>
+                        <span>${formatDate(record.date)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">签到时间：</span>
+                        <span>${signInDisplay}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">签退时间：</span>
+                        <span>${signOutDisplay}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">工作时长：</span>
+                        <span>${workHoursDisplay}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">考勤状态：</span>
+                        <span class="font-medium ${record.status === 'normal' ? 'text-success' : 'text-warning'}">${statusText}</span>
+                    </div>
+                </div>
+            `;
+            
+            showModal('考勤详情', content, ['关闭']);
+        }
+
+        // 处理考勤异常
+        function handleException(exceptionId) {
+            const exception = exceptionsData.find(e => e.id === exceptionId);
+            if (!exception) return;
+            
+            // 填充表单数据
+            document.getElementById('exceptionId').value = exception.id;
+            document.getElementById('exceptionEmployeeInfo').textContent = 
+                `${exception.employeeName} (${exception.employeeId}) - ${exception.department}`;
+            document.getElementById('exceptionDate').textContent = formatDate(exception.date);
+            
+            // 异常类型显示
+            let typeText;
+            switch(exception.type) {
+                case 'late': typeText = '迟到'; break;
+                case 'early': typeText = '早退'; break;
+                case 'absent': typeText = '旷工'; break;
+                case 'no-signin': typeText = '未签到'; break;
+                case 'no-signout': typeText = '未签退'; break;
+            }
+            
+            document.getElementById('exceptionTypeDisplay').textContent = typeText;
+            document.getElementById('exceptionDetails').textContent = exception.details;
+            document.getElementById('exceptionHandling').value = '';
+            document.getElementById('exceptionRemark').value = '';
+            
+            // 显示模态框
+            document.getElementById('exceptionModal').classList.remove('hidden');
+        }
+
+        // 查看异常详情
+        function viewException(exceptionId) {
+            const exception = exceptionsData.find(e => e.id === exceptionId);
+            if (!exception) return;
+            
+            // 构建详情内容
+            let typeText;
+            switch(exception.type) {
+                case 'late': typeText = '迟到'; break;
+                case 'early': typeText = '早退'; break;
+                case 'absent': typeText = '旷工'; break;
+                case 'no-signin': typeText = '未签到'; break;
+                case 'no-signout': typeText = '未签退'; break;
+            }
+            
+            let statusText = exception.status === 'pending' ? '待处理' : '已处理';
+            
+            const content = `
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">员工姓名：</span>
+                        <span class="font-medium">${exception.employeeName} (${exception.employeeId})</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">所属部门：</span>
+                        <span>${exception.department}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">异常日期：</span>
+                        <span>${formatDate(exception.date)}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">异常类型：</span>
+                        <span class="font-medium ${exception.type === 'absent' || exception.type === 'no-signin' ? 'text-danger' : 'text-warning'}">${typeText}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">异常详情：</span>
+                        <span>${exception.details}</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-500">处理状态：</span>
+                        <span class="font-medium ${exception.status === 'pending' ? 'text-warning' : 'text-success'}">${statusText}</span>
+                    </div>
+                    ${exception.status === 'processed' ? `
+                    <div class="pt-2 border-t border-gray-100">
+                        <div class="text-sm font-medium mb-1">处理记录：</div>
+                        <div class="bg-light p-3 rounded-lg text-sm">
+                            已进行警告处理，要求员工注意遵守考勤制度。
+                        </div>
+                    </div>
+                    ` : ''}
+                </div>
+            `;
+            
+            showModal('异常详情', content, ['关闭']);
+        }
+
+        // 处理异常表单
+        function handleExceptionForm() {
+            const exceptionId = parseInt(document.getElementById('exceptionId').value);
+            const handling = document.getElementById('exceptionHandling').value;
+            const remark = document.getElementById('exceptionRemark').value;
+            
+            // 简单验证
+            if (!handling) {
+                showModal('提示', '请选择处理方式', ['确定']);
+                return;
+            }
+            
+            // 更新异常状态
+            const exceptionIndex = exceptionsData.findIndex(e => e.id === exceptionId);
+            if (exceptionIndex !== -1) {
+                exceptionsData[exceptionIndex] = {
+                    ...exceptionsData[exceptionIndex],
+                    status: 'processed'
+                };
+            }
+            
+            // 隐藏模态框并重新渲染异常列表
+            document.getElementById('exceptionModal').classList.add('hidden');
+            renderExceptions();
+            
+            // 显示成功提示
+            let handlingText;
+            switch(handling) {
+                case 'warning': handlingText = '警告'; break;
+                case 'deduction': handlingText = '罚款'; break;
+                case 'ignore': handlingText = '忽略'; break;
+                case 'other': handlingText = '其他方式'; break;
+            }
+            
+            showModal('成功', `考勤异常已按${handlingText}方式处理完成`, ['确定']);
+        }
+
+        // 初始化其他交互功能
+        function initOtherInteractions() {
+            // 刷新按钮
+            document.getElementById('refreshBtn').addEventListener('click', function() {
+                // 显示加载动画
+                this.innerHTML = '<i class="fa fa-spinner fa-spin text-gray-600"></i>';
+                
+                // 模拟刷新数据
+                setTimeout(() => {
+                    this.innerHTML = '<i class="fa fa-refresh text-gray-600"></i>';
+                    showModal('提示', '考勤数据已刷新', ['确定']);
+                }, 800);
+            });
+        }
+
+        // 显示模态框
+        function showModal(title, content, buttons, callback) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalContent').innerHTML = content;
+            
+            const modalFooter = document.getElementById('modalFooter');
+            modalFooter.innerHTML = '';
+            
+            // 添加按钮
+            buttons.forEach((buttonText, index) => {
+                const button = document.createElement('button');
+                button.className = index === buttons.length - 1 ? 'btn-primary' : 'btn-secondary';
+                button.textContent = buttonText;
+                
+                button.addEventListener('click', function() {
+                    document.getElementById('modal').classList.add('hidden');
+                    if (callback) {
+                        // 最后一个按钮视为确认按钮
+                        callback(index === buttons.length - 1);
+                    }
+                });
+                
+                modalFooter.appendChild(button);
+            });
+            
+            // 显示模态框
+            document.getElementById('modal').classList.remove('hidden');
+        }
+
+        // 关闭模态框
+        document.getElementById('closeModal').addEventListener('click', function() {
+            document.getElementById('modal').classList.add('hidden');
+        });
+
+        // 格式化日期显示
+        function formatDate(dateString) {
+            if (!dateString) return '';
+            const date = new Date(dateString);
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+
+        // 格式化日期为input格式
+        function formatDateForInput(date) {
+            return `${date.getFullYear()}-${(date.getMonth() + 1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')}`;
+        }
+
+        // 获取部门名称
+        function getDepartmentName(value) {
+            const deptNames = {
+                'tech': '技术部',
+                'product': '产品部',
+                'operation': '运营部',
+                'sales': '销售部',
+                'finance': '财务部',
+                'hr': '人力资源部'
+            };
+            return deptNames[value] || value;
+        }
+
+        // 获取异常类型名称
+        function getExceptionTypeName(value) {
+            const typeNames = {
+                'late': '迟到',
+                'early': '早退',
+                'absent': '旷工',
+                'no-signin': '未签到',
+                'no-signout': '未签退'
+            };
+            return typeNames[value] || value;
+        }
+    </script>
+</body>
+</html>

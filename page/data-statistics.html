@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人力资源数据统计分析</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- 配置Tailwind自定义颜色 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#FF4D4F',
+                        info: '#40A9FF',
+                        dark: '#1F2937',
+                        light: '#F3F4F6'
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .chart-container {
+                position: relative;
+                height: 350px;
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter text-gray-800">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+        <!-- 页面标题 -->
+        <div class="mb-8">
+            <h1 class="text-[clamp(1.75rem,3vw,2.5rem)] font-bold text-dark mb-2">人力资源数据统计分析</h1>
+            <p class="text-gray-500">实时监控企业人力资源核心指标，辅助管理决策</p>
+        </div>
+        
+        <!-- 数据卡片 -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 card-shadow hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm mb-1">企业总员工数</p>
+                        <h3 class="text-3xl font-bold text-dark">2,458</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+                        <i class="fa fa-users text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 text-sm">
+                    <span class="text-success flex items-center">
+                        <i class="fa fa-arrow-up mr-1"></i> 3.2% 较上月
+                    </span>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 card-shadow hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm mb-1">本月新增员工</p>
+                        <h3 class="text-3xl font-bold text-dark">126</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-success/10 flex items-center justify-center text-success">
+                        <i class="fa fa-user-plus text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 text-sm">
+                    <span class="text-success flex items-center">
+                        <i class="fa fa-arrow-up mr-1"></i> 8.7% 较上月
+                    </span>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 card-shadow hover:shadow-lg transition-shadow duration-300 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-500 text-sm mb-1">本月离职员工</p>
+                        <h3 class="text-3xl font-bold text-dark">42</h3>
+                    </div>
+                    <div class="w-12 h-12 rounded-full bg-danger/10 flex items-center justify-center text-danger">
+                        <i class="fa fa-user-times text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 text-sm">
+                    <span class="text-danger flex items-center">
+                        <i class="fa fa-arrow-up mr-1"></i> 2.1% 较上月
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表区域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- 部门人数分布柱状图 -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex flex-wrap items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-dark">部门人数分布</h2>
+                    <div class="flex space-x-2 mt-2 sm:mt-0">
+                        <button id="btn-department" class="px-3 py-1 bg-primary text-white rounded-md text-sm">按部门</button>
+                        <button id="btn-position" class="px-3 py-1 bg-gray-100 text-gray-600 rounded-md text-sm hover:bg-gray-200 transition-colors">按岗位</button>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="departmentChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- 考勤率统计组合图表 -->
+            <div class="bg-white rounded-xl p-6 card-shadow">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-dark">考勤率统计</h2>
+                    <div class="relative">
+                        <select id="timeRange" class="appearance-none bg-gray-100 border-none rounded-md px-3 py-1.5 pr-8 text-sm focus:outline-none focus:ring-2 focus:ring-primary/50">
+                            <option value="6">近6周</option>
+                            <option value="12">近3个月</option>
+                            <option value="24">近6个月</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                            <i class="fa fa-chevron-down text-xs"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="chart-container h-64">
+                        <canvas id="attendanceLineChart"></canvas>
+                    </div>
+                    <div class="chart-container h-64">
+                        <canvas id="attendancePieChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 图表操作区 -->
+        <div class="flex justify-end space-x-3 mb-6">
+            <button id="exportChartBtn" class="flex items-center px-4 py-2 bg-white border border-gray-300 rounded-md text-sm hover:bg-gray-50 transition-colors">
+                <i class="fa fa-download mr-2 text-gray-500"></i>
+                导出图表
+            </button>
+            <button id="exportDataBtn" class="flex items-center px-4 py-2 bg-primary text-white rounded-md text-sm hover:bg-primary/90 transition-colors">
+                <i class="fa fa-file-excel-o mr-2"></i>
+                导出数据
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // 等待DOM加载完成
+        document.addEventListener('DOMContentLoaded', function() {
+            // 部门人数分布数据
+            const departmentData = {
+                labels: ['研发部', '市场部', '销售部', '人力资源部', '财务部', '运营部', '客服部'],
+                datasets: [{
+                    label: '员工数量',
+                    data: [850, 320, 480, 120, 95, 280, 210],
+                    backgroundColor: [
+                        '#165DFF', '#36CFC9', '#52C41A', '#FAAD14', 
+                        '#FF4D4F', '#722ED1', '#EB0AA4'
+                    ],
+                    borderRadius: 6,
+                    barThickness: 36,
+                }]
+            };
+            
+            // 岗位分布数据
+            const positionData = {
+                labels: ['研发部', '研发部', '研发部', '市场部', '市场部', '销售部', '人力资源部', '财务部', '运营部', '客服部'],
+                datasets: [{
+                    label: '员工数量',
+                    data: [350, 300, 200, 150, 170, 480, 120, 95, 280, 210],
+                    backgroundColor: [
+                        '#165DFF', '#1E88E5', '#2196F3', '#36CFC9', '#26A69A',
+                        '#52C41A', '#FAAD14', '#FF4D4F', '#722ED1', '#EB0AA4'
+                    ],
+                    borderRadius: 6,
+                    barThickness: 36,
+                }]
+            };
+            
+            // 部门人数分布图表配置
+            const departmentChartConfig = {
+                type: 'bar',
+                data: departmentData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 12,
+                            cornerRadius: 6,
+                            titleFont: {
+                                size: 14,
+                                weight: 'bold'
+                            },
+                            bodyFont: {
+                                size: 13
+                            },
+                            callbacks: {
+                                label: function(context) {
+                                    return `员工数量: ${context.raw}人`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 12
+                                },
+                                callback: function(value) {
+                                    return value;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000,
+                        easing: 'easeOutQuart'
+                    },
+                    onClick: function(event, elements) {
+                        if (elements.length > 0) {
+                            const index = elements[0].index;
+                            const label = this.data.labels[index];
+                            // 模拟点击跳转部门员工列表
+                            alert(`查看 "${label}" 的员工列表`);
+                        }
+                    }
+                }
+            };
+            
+            // 初始化部门人数分布图表
+            const departmentChart = new Chart(
+                document.getElementById('departmentChart'),
+                departmentChartConfig
+            );
+            
+            // 切换部门/岗位视图
+            document.getElementById('btn-department').addEventListener('click', function() {
+                departmentChart.data = departmentData;
+                departmentChart.update();
+                this.classList.remove('bg-gray-100', 'text-gray-600');
+                this.classList.add('bg-primary', 'text-white');
+                document.getElementById('btn-position').classList.remove('bg-primary', 'text-white');
+                document.getElementById('btn-position').classList.add('bg-gray-100', 'text-gray-600');
+            });
+            
+            document.getElementById('btn-position').addEventListener('click', function() {
+                departmentChart.data = positionData;
+                departmentChart.update();
+                this.classList.remove('bg-gray-100', 'text-gray-600');
+                this.classList.add('bg-primary', 'text-white');
+                document.getElementById('btn-department').classList.remove('bg-primary', 'text-white');
+                document.getElementById('btn-department').classList.add('bg-gray-100', 'text-gray-600');
+            });
+            
+            // 考勤率折线图数据
+            const attendanceRateData = {
+                labels: ['第1周', '第2周', '第3周', '第4周', '第5周', '第6周'],
+                datasets: [{
+                    label: '考勤率',
+                    data: [92.5, 93.8, 91.2, 94.5, 95.3, 96.1],
+                    borderColor: '#165DFF',
+                    backgroundColor: 'rgba(22, 93, 255, 0.1)',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#FFFFFF',
+                    pointBorderColor: '#165DFF',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            };
+            
+            // 考勤率折线图配置
+            const attendanceLineConfig = {
+                type: 'line',
+                data: attendanceRateData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 12,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    return `考勤率: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            min: 85,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            },
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    animation: {
+                        duration: 1000
+                    }
+                }
+            };
+            
+            // 考勤状态饼图数据
+            const attendanceStatusData = {
+                labels: ['正常', '迟到', '早退', '缺勤', '请假'],
+                datasets: [{
+                    data: [78, 8, 3, 2, 9],
+                    backgroundColor: [
+                        '#52C41A', '#FAAD14', '#FF7D00', '#FF4D4F', '#40A9FF'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 6
+                }]
+            };
+            
+            // 考勤状态饼图配置
+            const attendancePieConfig = {
+                type: 'doughnut',
+                data: attendanceStatusData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 15,
+                                boxWidth: 12,
+                                font: {
+                                    size: 11
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                            padding: 12,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw}%`;
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateRotate: true,
+                        animateScale: true,
+                        duration: 1000
+                    }
+                }
+            };
+            
+            // 初始化考勤率折线图和饼图
+            const attendanceLineChart = new Chart(
+                document.getElementById('attendanceLineChart'),
+                attendanceLineConfig
+            );
+            
+            const attendancePieChart = new Chart(
+                document.getElementById('attendancePieChart'),
+                attendancePieConfig
+            );
+            
+            // 时间范围选择事件
+            document.getElementById('timeRange').addEventListener('change', function() {
+                const weeks = parseInt(this.value);
+                // 生成对应周数的标签
+                const labels = [];
+                for (let i = 1; i <= weeks; i++) {
+                    labels.push(`第${i}周`);
+                }
+                
+                // 生成随机数据模拟不同时间范围的考勤率
+                const data = [];
+                for (let i = 0; i < weeks; i++) {
+                    data.push(90 + Math.random() * 7);
+                }
+                
+                // 更新折线图数据
+                attendanceLineChart.data.labels = labels;
+                attendanceLineChart.data.datasets[0].data = data;
+                attendanceLineChart.update();
+            });
+            
+            // 导出图表按钮事件
+            document.getElementById('exportChartBtn').addEventListener('click', function() {
+                // 这里仅做演示，实际项目中可以使用html2canvas等库实现
+                alert('图表导出功能已触发，实际项目中可使用html2canvas等库实现');
+            });
+            
+            // 导出数据按钮事件
+            document.getElementById('exportDataBtn').addEventListener('click', function() {
+                // 模拟数据导出
+                alert('数据导出功能已触发，实际项目中可后端生成Excel文件并提供下载');
+            });
+        });
+    </script>
+</body>
+</html>
